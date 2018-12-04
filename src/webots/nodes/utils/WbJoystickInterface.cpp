@@ -190,6 +190,9 @@ void WbJoystickInterface::setForceAxis(int axis) {
 void WbJoystickInterface::computeAutoCentering() {
   double angle = mListener->axisValue(mForceAxis);
   double force = 1.0 / (1.0 + exp(SIGMOID_LAMBDA * angle));
+  if (!qgetenv("WEBOTS_JOYSTICK_CENTERING_SIGMOID_ALPHA").isEmpty() &&
+      qgetenv("WEBOTS_JOYSTICK_CENTERING_SIGMOID_ALPHA").toDouble() > 0.0)
+    force = 1.0 / (1.0 + exp(qgetenv("WEBOTS_JOYSTICK_CENTERING_SIGMOID_ALPHA").toDouble() * angle));
   force = mAutoCenteringGain * ((force - 0.5) * 2);  // convert sigmoïd from [0;1] to [-mAutoCenteringGain;mAutoCenteringGain]
 #ifdef _WIN32
   force = -force;

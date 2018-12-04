@@ -17,10 +17,12 @@
 #include "WbApplicationInfo.hpp"
 #include "WbVersion.hpp"
 
+#include <QtCore/QFile>
 #include <QtCore/QTime>
 #include <QtGui/QPainter>
 
-WbSplashScreen::WbSplashScreen(const QStringList &screenshots, const QString &logoFileName) {
+WbSplashScreen::WbSplashScreen(const QStringList &screenshots, const QString &logoFileName) :
+  mUseCustomSplashScreenImage(false) {
   QPixmap background(960, 580);
   background.fill(Qt::black);
   QSplashScreen::setPixmap(background);
@@ -30,6 +32,12 @@ WbSplashScreen::WbSplashScreen(const QStringList &screenshots, const QString &lo
 
   mScreenshot = QImage("images:splash_images/" + screenshots.at(randomImageIndex));
   mWebotsLogo = QImage("images:" + logoFileName);
+
+  const QString customImage = qgetenv("WEBOTS_CUSTOM_SPLASH_SCREEN");
+  if (!customImage.isEmpty() && QFile::exists(customImage)) {
+    mScreenshot = QImage(customImage);
+    mUseCustomSplashScreenImage = true;
+  }
 }
 
 WbSplashScreen::~WbSplashScreen() {
@@ -43,6 +51,11 @@ void WbSplashScreen::drawContents(QPainter *painter) {
 #else
   const double dotsPerInchRatio = 1.0;
 #endif
+
+  if (mUseCustomSplashScreenImage) {
+    painter->drawImage(0, 0, mScreenshot);
+    return;
+  }
 
   // draw left-hand background
   QLinearGradient gradient(190, 0, 190, 580);

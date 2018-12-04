@@ -412,6 +412,10 @@ static void update_engine_sound() {
       volume *= (1.0 - RPM_TO_VOLUME_GAIN) + RPM_TO_VOLUME_GAIN *
                                                (rpm < instance->car->engine_max_rpm ? instance->car->engine_max_rpm : rpm) /
                                                instance->car->engine_max_rpm;
+      // modulate volume by speed
+      const double speed_ratio =
+        wbu_driver_get_current_speed() > 80.0 ? 1.0 : 0.7 + 0.3 * wbu_driver_get_current_speed() / 80.0;
+      volume *= speed_ratio;
     }
     WbuCarEngineType engine = instance->car->engine_type;
     if (engine == WBU_CAR_POWER_SPLIT_HYBRID_ENGINE) {

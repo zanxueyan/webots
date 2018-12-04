@@ -433,6 +433,10 @@ ifdef USE_QT
    DYNAMIC_LIBRARIES += -lQt5PrintSupport
    INCLUDE += -isystem "$(QT_INCLUDE_DIR)/QtPrintSupport"
   endif
+  ifneq ($(filter serialport,$(QT)),)
+   DYNAMIC_LIBRARIES += -lQt5SerialPort
+   INCLUDE += -I"$(QT_INCLUDE_DIR)/QtSerialPort"
+  endif
   ifneq ($(filter widgets,$(QT)),)
    DYNAMIC_LIBRARIES += -lQt5Widgets
    INCLUDE += -isystem "$(QT_INCLUDE_DIR)/QtWidgets"
@@ -466,6 +470,10 @@ ifdef USE_QT
   ifneq ($(filter network,$(QT)),)
    DYNAMIC_LIBRARIES += -lQt5Network
    INCLUDE += -isystem "$(QT_INCLUDE_DIR)/QtNetwork"
+  endif
+  ifneq ($(filter serialport,$(QT)),)
+   DYNAMIC_LIBRARIES += -lQt5SerialPort
+   INCLUDE += -I"$(QT_INCLUDE_DIR)/QtSerialPort"
   endif
   ifneq ($(filter opengl,$(QT)),)
    DYNAMIC_LIBRARIES += -lQt5OpenGL
@@ -511,6 +519,9 @@ ifdef USE_QT
   endif
   ifneq ($(filter printsupport,$(QT)),)
    FRAMEWORKS += -framework QtPrintSupport
+  endif
+  ifneq ($(filter serialport,$(QT)),)
+   FRAMEWORKS += -framework QtSerialPort
   endif
   ifneq ($(filter widgets,$(QT)),)
    FRAMEWORKS += -framework QtWidgets

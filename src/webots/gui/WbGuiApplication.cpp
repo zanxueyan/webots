@@ -279,10 +279,10 @@ bool WbGuiApplication::setup() {
   // image in the splash screen is empty...
   // Doing the same on Windows slows down the popup of the SplashScreen, therefore
   // the main window is created later on Windows.
-  mMainWindow = new WbMainWindow(mShouldMinimize);
+  mMainWindow = new WbMainWindow(mShouldMinimize || mShouldStartFullscreen);
 #endif
 
-  if (!mShouldMinimize) {
+  if (!mShouldMinimize && qgetenv("WEBOTS_DISABLE_SPLASH_SCREEN").isEmpty()) {
     // splash screen
     // Warning: using heap allocated splash screen and/or pixmap cause crash while
     // showing tooltips in the main window under Linux.
@@ -312,7 +312,7 @@ bool WbGuiApplication::setup() {
 #ifdef __APPLE__
     // On macOS, when the WbSplashScreen is shown, Qt calls a resize event on the QMainWindow (not shown yet) with the size of
     // the splash screen. This overrides the WbMainWindow size preferences. This sounds like a Qt bug.
-    mMainWindow->restorePreferredGeometry(mShouldMinimize);
+    mMainWindow->restorePreferredGeometry(mShouldMinimize || mShouldStartFullscreen);
 #endif
     connect(WbLog::instance(), &WbLog::popupOpen, mSplash, &QSplashScreen::hide);
     connect(WbLog::instance(), &WbLog::popupClosed, mSplash, &QSplashScreen::show);
@@ -345,10 +345,10 @@ bool WbGuiApplication::setup() {
 
 #ifdef _WIN32
   // create main window
-  mMainWindow = new WbMainWindow(mShouldMinimize);
+  mMainWindow = new WbMainWindow(mShouldMinimize || mShouldStartFullscreen);
 #endif
 
-  if (mShouldMinimize)
+  if (mShouldMinimize || mShouldStartFullscreen)
     mMainWindow->showMinimized();
   else {
     WbPreferences *const prefs = WbPreferences::instance();
@@ -430,8 +430,10 @@ void WbGuiApplication::loadInitialWorld() {
     // this file should always exists
     mMainWindow->loadWorld(WbStandardPaths::emptyProjectPath() + "worlds/" + WbProject::newWorldFileName());
 
-  if (!mShouldMinimize && mShouldStartFullscreen)
+  if (!mShouldMinimize && mShouldStartFullscreen) {
+    mMainWindow->showNormal();
     mMainWindow->setFullScreen(true, false, false, true);
+  }
 }
 
 void WbGuiApplication::udpateStyleSheet() {

@@ -46,7 +46,7 @@ mkdir -p lib/qt/plugins/printsupport
 mkdir -p lib/qt/plugins/styles
 mkdir -p lib/qt/translations
 
-for MODULE in QtCore QtConcurrent QtGui QtNetwork QtOpenGL QtPrintSupport QtWebKit QtWebKitWidgets QtWebSockets QtWidgets QtXml
+for MODULE in QtCore QtConcurrent QtGui QtNetwork QtOpenGL QtPrintSupport QtSerialPort QtWebKit QtWebKitWidgets QtWebSockets QtWidgets QtXml
 do
   echo installing $MODULE...
   mkdir -p include/qt/$MODULE/$MODULE

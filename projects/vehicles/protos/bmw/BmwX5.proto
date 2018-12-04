@@ -66,13 +66,17 @@ PROTO BmwX5 [
     trackFront 1.628
     trackRear 1.628
     wheelbase 2.995
-    time0To100 7
+    time0To100 15
     engineMinRPM 1000
     engineMaxRPM 6500
     brakeCoefficient 1800  # calibrated for braking from 100 to 0km/h in 36.5m
+    suspensionFrontSpringConstant 200000
+    suspensionFrontDampingConstant 8000
+    suspensionRearSpringConstant 200000
+    suspensionRearDampingConstant 8000
     engineFunctionCoefficients 34.11 0.136 -0.00001461
-    wheelsDampingConstant 2
-    gearRatio   [-12.5 12.5 8 5.35 4.3 4]
+    wheelsDampingConstant 10
+    gearRatio [-12.5 12.5 8.5 8 7.9 7.8]
     wheelFrontLeft BmwX5Wheel {
       name "front left wheel"
       physics DEF WHEEL_PHYSICS Physics {

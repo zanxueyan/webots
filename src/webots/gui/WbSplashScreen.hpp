@@ -55,6 +55,7 @@ private:
   QString mMessage;
   QImage mWebotsLogo;
   QImage mScreenshot;
+  bool mUseCustomSplashScreenImage;
 
   QColor mBackgroundGradientStartColor;
   QColor mBackgroundGradientEndColor;
