@@ -103,8 +103,8 @@ void WbImageTexture::updateWrenTexture() {
     QSize textureSize = imageReader.size();
     const int imageWidth = textureSize.width();
     const int imageHeight = textureSize.height();
-    const int width = WbMathsUtilities::nextPowerOf2(imageWidth);
-    const int height = WbMathsUtilities::nextPowerOf2(imageHeight);
+    int width = WbMathsUtilities::nextPowerOf2(imageWidth);
+    int height = WbMathsUtilities::nextPowerOf2(imageHeight);
     if (width != imageWidth || height != imageHeight)
       WbLog::warning(tr("Texture image size of '%1' is not a power of two: rescaling it from %2x%3 to %4x%5.")
                        .arg(filePath)
@@ -112,6 +112,9 @@ void WbImageTexture::updateWrenTexture() {
                        .arg(imageHeight)
                        .arg(width)
                        .arg(height));
+
+    width = qMin(1.0, width / 2);
+    height = qMin(1.0, height / 2);
 
     delete mImage;
     mImage = new QImage();
@@ -138,6 +141,9 @@ void WbImageTexture::updateWrenTexture() {
       wr_texture_setup(WR_TEXTURE(texture));
 
       WbWrenOpenGlContext::doneWren();
+
+      delete mImage;
+      mImage = NULL;
     } else
       warn(tr("Cannot load texture '%1': %2.").arg(filePath).arg(imageReader.errorString()));
   } else
