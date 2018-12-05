@@ -26,6 +26,7 @@
 #include "WbWorld.hpp"
 #include "WbWrenOpenGlContext.hpp"
 
+#include <QtCore/QtGlobal>
 #include <QtGui/QImageReader>
 
 #include <wren/gl_state.h>
@@ -113,8 +114,8 @@ void WbImageTexture::updateWrenTexture() {
                        .arg(width)
                        .arg(height));
 
-    width = qMin(1.0, width / 2);
-    height = qMin(1.0, height / 2);
+    width = qMax(1, width / 2);
+    height = qMax(1, height / 2);
 
     delete mImage;
     mImage = new QImage();
