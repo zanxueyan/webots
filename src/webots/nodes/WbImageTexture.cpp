@@ -20,6 +20,7 @@
 #include "WbLog.hpp"
 #include "WbMFString.hpp"
 #include "WbMathsUtilities.hpp"
+#include "WbPreferences.hpp"
 #include "WbRgb.hpp"
 #include "WbSFBool.hpp"
 #include "WbUrl.hpp"
@@ -114,8 +115,15 @@ void WbImageTexture::updateWrenTexture() {
                        .arg(width)
                        .arg(height));
 
-    width = qMax(1, width / 2);
-    height = qMax(1, height / 2);
+    const int quality = WbPreferences::instance()->value("OpenGL/TextureQuality", 2).toInt();
+    const int divider = 4 * pow(0.5, quality);      // 0: 4, 1: 2, 2: 1
+    const int minResolution = pow(2, 9 + quality);  // 0: 512, 1: 1024, 2: 2048
+    if (divider != 1) {
+      if (width >= minResolution)
+        width /= divider;
+      if (height >= minResolution)
+        height /= divider;
+    }
 
     delete mImage;
     mImage = new QImage();

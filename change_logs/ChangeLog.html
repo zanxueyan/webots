@@ -33,9 +33,11 @@ Released on December XXth, 2018
 <li>Added two new functions to the Speaker API called 'wb_speaker_is_sound_playing' and 'wb_speaker_is_speaking' to check whether a specific sound is currently been played or if the speaker is performing text-to-speech.</li>
 <li>Added a model of 'Fanatec CSL Elite Racing Wheel' steering wheel to be used in the 'steeringWheel' field of some vehicles.</li>
 <li>Added a ROBOTIS OP3 model.</li>
+<li>Added three model of Velodyne lidars: 'Puck', 'Puck Hi-Res' and 'Puck LITE'.</li>
 </ul>
 <li><b>Dependency Updates</b></li>
 <ul>
+<li>Windows: upgraded to Qt 5.12.0.</li>
 <li>macOS: upgraded to Qt 5.11.2.</li>
 <li><font color="red">macOS: Added support for macOS 10.14. Dropped support of the obsolete libstdc++ and the i386 architecture from libController and derivated libraries.</font></li>
 <li><font color="red">Windows: upgraded default Python version to 3.7</font></li>
@@ -44,10 +46,12 @@ Released on December XXth, 2018
 <li><b>Enhancements</b></li>
 <ul>
 <li>Improved support of macOS Mojave and Retina displays.</li>
+<li>Improved support of the VMWare virtual machines.</li>
 <li>Improved the conversion from PROTO nodes into base nodes by preserving the DEF-USE definitions.</li>
 <li>Improved the message dialog displayed when a controller is built to propose by default to reset the world.</li>
 <li>Improved DEF/USE error messages for nodes defined in PROTO model bodies.</li>
 <li>Improved real-time computation (displayed in the speedometer) for simulations with a time step smaller than 32ms.</li>
+<li>Exposed global texture quality as a parameter in the Webots preferences.</li>
 </ul>
 <li><b>Bug fixes</b></li>
 <ul>
@@ -68,6 +72,7 @@ Released on December XXth, 2018
 <li>Fixed issue with wrong sensor refresh rate with the ROS controller when the world time step is not equal to 32.</li>
 <li>Fixed performance issue when using Camera, Lidar or RangeFinder devices with the ROS controller (thanks to Omar).</li>
 <li>Fixed guided tour opened in batch mode.</li>
+<li>Fixed enabling of InertialUnit devices from the generic robot-windows.</li>
 </ul>
 <li><b>Cleanup</b></li>
 <ul>
