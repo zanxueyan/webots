@@ -356,7 +356,7 @@ void WbMotor::addConfigureToStream(QDataStream &stream) {
   stream << (double)mControlPID->value().x();
   stream << (double)mControlPID->value().y();
   stream << (double)mControlPID->value().z();
-  mNeedToConfigure = false;
+  stream << (int)mMuscles->size();
 }
 
 void WbMotor::writeConfigure(QDataStream &stream) {

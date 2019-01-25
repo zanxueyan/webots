@@ -64,6 +64,10 @@ double wb_motor_get_max_force(WbDeviceTag tag);
 double wb_motor_get_available_torque(WbDeviceTag tag);
 double wb_motor_get_max_torque(WbDeviceTag tag);
 
+bool wb_motor_has_muscle(WbDeviceTag tag);
+void wb_motor_set_muscle_color(WbDeviceTag tag, int value, int index);
+int wb_motor_get_muscle_color(WbDeviceTag tag);
+
 WbDeviceTag wb_motor_get_brake(WbDeviceTag tag);
 WbDeviceTag wb_motor_get_position_sensor(WbDeviceTag tag);
 

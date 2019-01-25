@@ -48,6 +48,8 @@ typedef struct {
   double previous_control_p;
   double previous_control_i;
   double previous_control_d;
+  bool has_muscle;
+  int muscle_color;
   bool configured;
   WbJointType type;
   int requested_device_type;
@@ -74,6 +76,8 @@ static Motor *motor_create() {
   motor->max_velocity = 10.0;
   motor->max_force = 10.0;
   motor->type = WB_ROTATIONAL;
+  motor->has_muscle = false;
+  motor->muscle_color = 0;
   // To support user changes during remote control
   motor->previous_velocity = 10.0;
   motor->previous_acceleration = -1.0;
@@ -173,6 +177,7 @@ static void motor_read_answer(WbDevice *d, WbRequest *r) {
       m->control_p = m->previous_control_p;
       m->control_i = m->previous_control_i;
       m->control_d = m->previous_control_d;
+      m->has_muscle = request_read_int32(r) != 0;
       m->configured = true;
       break;
     case C_MOTOR_FEEDBACK:
@@ -606,6 +611,45 @@ static WbDeviceTag motor_get_associated_device(WbDeviceTag t, int device_type, c
   WbDeviceTag tag = motor->associated_device_tag;
   robot_mutex_unlock_step();
   return tag;
+}
+
+bool wb_motor_has_muscle(WbDeviceTag tag) {
+  Motor *motor = motor_get_struct(t);
+  if (!motor) {
+    fprintf(stderr, "Error: wb_motor_has_muscle(): invalid device tag.\n");
+    return 0;
+  }
+  return motor.has_muscle;
+}
+
+void wb_motor_set_muscle_color(WbDeviceTag tag, int value, int index) {
+  Motor *motor = motor_get_struct(t);
+  if (!motor) {
+    fprintf(stderr, "Error: wb_motor_set_muscle_color(): invalid device tag.\n");
+    return;
+  }
+
+  if (!motor.has_muscle) {
+    fprintf(stderr, "Error: wb_motor_set_muscle_color(): no Muscle node attached to this motor.\n");
+    return;
+  }
+
+  // TODO
+}
+
+int wb_motor_get_muscle_color(WbDeviceTag tag) {
+  Motor *motor = motor_get_struct(t);
+  if (!motor) {
+    fprintf(stderr, "Error: wb_motor_get_muscle_color(): invalid device tag.\n");
+    return 0;
+  }
+
+  if (!motor.has_muscle) {
+    fprintf(stderr, "Error: wb_motor_get_muscle_color(): no Muscle node attached to this motor.\n");
+    return 0;
+  }
+
+  return muscle_color;
 }
 
 WbDeviceTag wb_motor_get_position_sensor(WbDeviceTag tag) {
