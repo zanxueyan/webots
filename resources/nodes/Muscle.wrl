@@ -5,6 +5,7 @@ Muscle {
   field SFFloat    maxRadius    0.2    # radius value is used to compute the muscle spheroid volume
   field SFVec3f    startOffset  0 0 0  # translation offset from parent solid
   field SFVec3f    endOffset    0 0 0  # translation offset from endPoint solid
+  field SFVec3f    center       0 0 0  # TODO
   field MFColor    color        [ ]    # muscle colors based on the status: idle, contrancting, and relaxing.
   field SFBool     castShadows  TRUE
   field SFBool     visible      TRUE   # show/hide the graphical mucle representation

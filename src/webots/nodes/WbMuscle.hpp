@@ -68,6 +68,7 @@ private:
   WbSFDouble *mMaxRadius;
   WbSFVector3 *mStartOffset;
   WbSFVector3 *mEndOffset;
+  WbSFVector3 *mCenter;
   WbMFColor *mColors;
   WbSFBool *mCastShadows;
   WbSFBool *mVisible;

@@ -1,3 +1,4 @@
+#include <QtCore/QDebug>
 // Copyright 1996-2018 Cyberbotics Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -49,6 +50,7 @@ void WbMuscle::init() {
   mMaxRadius = findSFDouble("maxRadius");
   mStartOffset = findSFVector3("startOffset");
   mEndOffset = findSFVector3("endOffset");
+  mCenter = findSFVector3("center");
   mColors = findMFColor("color");
   mCastShadows = findSFBool("castShadows");
   mVisible = findSFBool("visible");
@@ -125,6 +127,7 @@ void WbMuscle::postFinalize() {
   connect(mMaxRadius, &WbSFDouble::changed, this, &WbMuscle::updateRadius);
   connect(mStartOffset, &WbSFVector3::changed, this, &WbMuscle::updateRadius);
   connect(mEndOffset, &WbSFVector3::changed, this, &WbMuscle::updateRadius);
+  connect(mCenter, &WbSFVector3::changed, this, &WbMuscle::updateRadius);
   connect(mColors, &WbMFColor::changed, this, &WbMuscle::updateMaterial);
   connect(mCastShadows, &WbSFBool::changed, this, &WbMuscle::updateCastShadows);
   connect(mVisible, &WbSFBool::changed, this, &WbMuscle::updateVisible);
@@ -406,6 +409,9 @@ void WbMuscle::createMeshBuffers() {
 }
 
 void WbMuscle::updateMeshCoordinates() {
+  if (!mEndPoint || !mVisible->value())
+    return;
+
   assert(areWrenObjectsInitialized());
 
   wr_dynamic_mesh_clear_selected(mMesh, true, true, false, false);
@@ -423,6 +429,11 @@ void WbMuscle::updateMeshCoordinates() {
     (rm * WbVector3(0, -1, 0)).toFloatArray(normal);
     wr_dynamic_mesh_add_normal(mMesh, normal);
   }
+
+  const WbVector3 t1 = mCenter->value() - mStartOffset->value();
+  const WbVector3 t2 = mEndPoint->rotation().toMatrix3() * mEndOffset->value() + mEndPoint->translation() - mCenter->value();
+  const float height = t1.length() + t2.length();
+
   // body
   const double h2 = mHeight * 0.5;
   const double dy = mHeight / SUBDIVISION;
@@ -431,14 +442,33 @@ void WbMuscle::updateMeshCoordinates() {
   for (int j = 1; j < SUBDIVISION; ++j, y += dy) {
     const double d = y / h2;
     const double r = mRadius * sqrt(1 - d * d);
+
+    const float ratio = (float)j / (float)SUBDIVISION;
+    const WbVector3 t = ratio * t2 + (1 - ratio) * t1;
+
+    // compute mesh matrix
+    WbMatrix4 mat;
+    mat.setIdentity();
+    WbVector3 tmp = mCenter->value();
+    tmp.setX(0.0);
+    mat.setTranslation(ratio * tmp + mStartOffset->value());
+    const WbVector3 y(0, 1, 0);
+    double dotProduct = y.dot(t) / mHeight;
+    WbVector3 w = y.cross(t);
+    w.normalize();
+    double angle = acos(dotProduct);
+    assert(!std::isnan(angle));
+    mat.setRotation(w.x(), w.y(), w.z(), angle);
+
     for (int i = 0; i <= SUBDIVISION; ++i, vIndex += 3, nIndex += 3) {
-      const WbVector4 coord = WbVector4(r * gCircleCoordinates[i].x(), y + h2, r * gCircleCoordinates[i].y(), 1.0);
+      const WbVector4 coord = WbVector4(r * gCircleCoordinates[i].x(), j * dy, r * gCircleCoordinates[i].y(), 1.0);
 
       float vertex[3];
-      (mMatrix * coord).toVector3().toFloatArray(vertex);
+      (mat * coord).toVector3().toFloatArray(vertex);
       wr_dynamic_mesh_add_vertex(mMesh, vertex);
       float normal[3];
-      (rm * WbVector3(gCircleCoordinates[i].x(), coord.y() * normalFactor, gCircleCoordinates[i].y())).toFloatArray(normal);
+      (mat.extracted3x3Matrix() * WbVector3(gCircleCoordinates[i].x(), coord.y() * normalFactor, gCircleCoordinates[i].y()))
+        .toFloatArray(normal);
       wr_dynamic_mesh_add_normal(mMesh, normal);
     }
   }
