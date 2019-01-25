@@ -1,18 +1,18 @@
-# Webots
+# Webots [![Build Status](https://travis-ci.org/omichel/webots.svg?branch=master)](https://travis-ci.org/omichel/webots)
 
 Webots is an open-source robot simulator that provides a complete development environment to model, program and simulate robots, vehicles and biomechanical systems.
 
-[![Webots Video](https://user-images.githubusercontent.com/2461619/48144210-be528280-e2b0-11e8-9b7d-432db17522bb.PNG)](https://www.youtube.com/watch?v=pZC9YcRsKPI)
+[![Webots Video](https://img.youtube.com/vi/O7U3sX_ubGc/0.jpg)](https://www.youtube.com/watch?v=O7U3sX_ubGc)
 
-# Download
+### Download
 
-You can download pre-compiled binaries packages of Webots for Windows, macOS and Linux from [Cyberbotics](https://cyberbotics.com).
+You can download pre-compiled binaries for Windows, macOS and Linux from the [releases page](https://github.com/omichel/webots/releases).
 
-# Build from the source
+### Building from Source
 
-If you prefer to compile Webots from the source, read our [Webots Development](https://github.com/omichel/webots/wiki/Webots-Development) pages and checkout out [contributing guidelines](CONTRIBUTING.md).
+If you prefer to compile Webots from source, read our [Webots Development pages](https://github.com/omichel/webots/wiki#installation-of-the-webots-development-environment) and check out [contributing guidelines](CONTRIBUTING.md).
 
-# About us
+### About us
 
 Webots was originally designed at [EPFL](https://epfl.ch) in 1996 and then further developed and commercialized by [Cyberbotics](https://cyberbotics.com) since 1998. In December 2018, Webots was open sourced. Since then, [Cyberbotics](https://cyberbotics.com) continues to develop Webots thanks to paid customer support, training, consulting for industry and academic research projects.
 

@@ -66,7 +66,7 @@ void WbDictionary::update(bool load) {
 
 bool WbDictionary::updateDef(WbBaseNode *&node, WbSFNode *sfNode, WbMFNode *mfNode, int index) {
   const QString &defName = node->defName();
-  const QString useName = node->useName();
+  const QString &useName = node->useName();
   const bool useCase = !useName.isEmpty();
   const int useNestingDegree = mNestedDictionaries.size() - 1;
 
@@ -99,7 +99,7 @@ bool WbDictionary::updateDef(WbBaseNode *&node, WbSFNode *sfNode, WbMFNode *mfNo
         QString error;
         assert(node->parentField() && node->parent());
         typeMatch = WbNodeUtilities::isAllowedToInsert(node->parentField(), definitionNode->nodeModelName(), node->parent(),
-                                                       error, nodeUse, QString());
+                                                       error, nodeUse, QString(), QStringList(definitionNode->nodeModelName()));
         match = typeMatch && !definitionNode->isAnAncestorOf(node);
       }
 
@@ -114,8 +114,9 @@ bool WbDictionary::updateDef(WbBaseNode *&node, WbSFNode *sfNode, WbMFNode *mfNo
           definitionNode = static_cast<WbBaseNode *>(matchingNode->defNode());
           QString error;
           assert(node->parentField() && node->parent());
-          typeMatch = WbNodeUtilities::isAllowedToInsert(node->parentField(), definitionNode->nodeModelName(), node->parent(),
-                                                         error, nodeUse, QString());
+          typeMatch =
+            WbNodeUtilities::isAllowedToInsert(node->parentField(), definitionNode->nodeModelName(), node->parent(), error,
+                                               nodeUse, QString(), QStringList(definitionNode->nodeModelName()));
         }
       }
 
@@ -278,7 +279,7 @@ void WbDictionary::updateProtosDef(WbBaseNode *&node, WbSFNode *sfNode, WbMFNode
         lookupDegree--;
       mNestedDictionaries[lookupDegree].insertMulti(defName, node);
     } else {
-      const QString useName = node->useName();
+      const QString &useName = node->useName();
       const bool useCase = !useName.isEmpty();
       lookupDegree--;
       if (useCase && lookupDegree >= 0 && isAValidUseableNode) {
@@ -401,7 +402,7 @@ void WbDictionary::updateProtosDef(WbBaseNode *&node, WbSFNode *sfNode, WbMFNode
 }
 
 void WbDictionary::makeDefNodeAndUpdateDictionary(WbBaseNode *node, bool updateSceneDictionary) {
-  const QString useName = node->useName();
+  const QString &useName = node->useName();
   node->makeDefNode();
   node->updateContextDependentObjects();
   assert(mNestedDictionaries.size() >= 2);
@@ -431,7 +432,7 @@ bool WbDictionary::checkBoundingObjectConstraints(const WbBaseNode *defNode, QSt
         const WbNode *const n = sfnode->value();
         if (n) {
           if (!WbNodeUtilities::isAllowedToInsert(fields[i], n->nodeModelName(), parentNode, errorMessage, nodeUse, QString(),
-                                                  false))
+                                                  QStringList(n->nodeModelName()), false))
             return false;
           subNodes << n;
         }
@@ -443,7 +444,7 @@ bool WbDictionary::checkBoundingObjectConstraints(const WbBaseNode *defNode, QSt
             const WbNode *const n = mfnode->item(j);
             if (n) {
               if (!WbNodeUtilities::isAllowedToInsert(fields[i], n->nodeModelName(), parentNode, errorMessage, nodeUse,
-                                                      QString(), false))
+                                                      QString(), QStringList(n->nodeModelName()), false))
                 return false;
 
               subNodes << n;
@@ -502,7 +503,7 @@ bool WbDictionary::isSuitable(const WbNode *defNode, const QString &type) const 
   QString errorMessage;
   const WbNode::NodeUse targetNodeUse = static_cast<WbBaseNode *>(mTargetNode)->nodeUse();
   if (!WbNodeUtilities::isAllowedToInsert(mTargetField, defNode->nodeModelName(), mTargetNode, errorMessage, targetNodeUse,
-                                          type, true))
+                                          type, QStringList(defNode->nodeModelName()), true))
     return false;
 
   const WbBaseNode *defBaseNode = dynamic_cast<const WbBaseNode *>(defNode);
