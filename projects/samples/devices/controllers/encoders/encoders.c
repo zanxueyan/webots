@@ -1,5 +1,5 @@
 /*
- * Copyright 1996-2022 Cyberbotics Ltd.
+ * Copyright 1996-2023 Cyberbotics Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -83,7 +83,7 @@ int main(void) {
       left_encoder_offset = wb_position_sensor_get_value(left_position_sensor);
       right_encoder_offset = wb_position_sensor_get_value(right_position_sensor);
 
-      printf("Goal position for the encoders : %d %d\n", goal[0], goal[1]);
+      printf("Goal position for the encoders: %d %d\n", goal[0], goal[1]);
     }
   }
 

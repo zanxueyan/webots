@@ -1,4 +1,4 @@
-// Copyright 1996-2022 Cyberbotics Ltd.
+// Copyright 1996-2023 Cyberbotics Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@
 #include "WbSimulationState.hpp"
 #include "WbTransform.hpp"
 #include "WbVector2.hpp"
+#include "WbVrmlNodeUtilities.hpp"
 
 #include <wren/renderable.h>
 #include <wren/static_mesh.h>
@@ -40,7 +41,7 @@ void WbCone::init() {
   mBottom = findSFBool("bottom");
   mSubdivision = findSFInt("subdivision");
 
-  mResizeConstraint = WbWrenAbstractResizeManipulator::X_EQUAL_Z;
+  mResizeConstraint = WbWrenAbstractResizeManipulator::X_EQUAL_Y;
 }
 
 WbCone::WbCone(WbTokenizer *tokenizer) : WbGeometry("Cone", tokenizer) {
@@ -83,24 +84,24 @@ void WbCone::createWrenObjects() {
 }
 
 void WbCone::setResizeManipulatorDimensions() {
-  WbVector3 scale(mBottomRadius->value(), mHeight->value(), mBottomRadius->value());
+  WbVector3 scale(mBottomRadius->value(), mBottomRadius->value(), mHeight->value());
 
   WbTransform *transform = upperTransform();
   if (transform)
-    scale *= transform->matrix().scale();
+    scale *= transform->absoluteScale();
 
   resizeManipulator()->updateHandleScale(scale.ptr());
   updateResizeHandlesSize();
 }
 
 void WbCone::createResizeManipulator() {
-  mResizeManipulator = new WbRegularResizeManipulator(uniqueId(), WbWrenAbstractResizeManipulator::ResizeConstraint::X_EQUAL_Z);
+  mResizeManipulator = new WbRegularResizeManipulator(uniqueId(), WbWrenAbstractResizeManipulator::ResizeConstraint::X_EQUAL_Y);
 }
 
 bool WbCone::areSizeFieldsVisibleAndNotRegenerator() const {
   const WbField *const heightField = findField("height", true);
   const WbField *const radiusField = findField("bottomRadius", true);
-  return WbNodeUtilities::isVisible(heightField) && WbNodeUtilities::isVisible(radiusField) &&
+  return WbVrmlNodeUtilities::isVisible(heightField) && WbVrmlNodeUtilities::isVisible(radiusField) &&
          !WbNodeUtilities::isTemplateRegeneratorField(heightField) && !WbNodeUtilities::isTemplateRegeneratorField(radiusField);
 }
 

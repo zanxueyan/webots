@@ -1,5 +1,5 @@
 /*
- * Copyright 1996-2022 Cyberbotics Ltd.
+ * Copyright 1996-2023 Cyberbotics Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,8 @@
  */
 
 /*
- * Description:  This supervisor track the absolute position
- *               of the robot and display the result on a
- *               Display.
+ * Description: This supervisor tracks the absolute position of the robot
+ *              and displays the result on a Display device.
  */
 
 #include <stdio.h>

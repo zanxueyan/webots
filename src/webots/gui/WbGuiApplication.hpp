@@ -1,4 +1,4 @@
-// Copyright 1996-2022 Cyberbotics Ltd.
+// Copyright 1996-2023 Cyberbotics Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ class WbApplication;
 class WbMainWindow;
 class WbSplashScreen;
 class WbTcpServer;
+class WbSingleTaskApplication;
 
 class WbGuiApplication : public QApplication {
   Q_OBJECT
@@ -39,7 +40,7 @@ public:
   void restart();
   static void setWindowsDarkMode(QWidget *);
 
-  enum Task { NORMAL, SYSINFO, HELP, VERSION, UPDATE_PROTO_CACHE, UPDATE_WORLD, INVALID_LOGIN, FAILURE, QUIT, CONVERT };
+  enum Task { NORMAL, SYSINFO, HELP, VERSION, UPDATE_WORLD, INVALID_LOGIN, FAILURE, QUIT, CONVERT };
   WbApplication *application() const { return mApplication; };
 
 protected:
@@ -76,7 +77,8 @@ private:
   WbSimulationState::Mode startupModeFromPreferences() const;
   bool renderingFromPreferences() const;
   void loadInitialWorld();
-  void udpateStyleSheet();
+  void updateStyleSheet();
+  const WbSingleTaskApplication *taskExecutor();
 };
 
 #endif

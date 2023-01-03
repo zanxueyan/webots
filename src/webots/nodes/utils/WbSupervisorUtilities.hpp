@@ -1,4 +1,4 @@
-// Copyright 1996-2022 Cyberbotics Ltd.
+// Copyright 1996-2023 Cyberbotics Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -70,6 +70,9 @@ private slots:
   void notifyNodeUpdate(WbNode *node);
   void notifyFieldUpdate();
   void updateProtoRegeneratedFlag(WbNode *node);
+  void removeTrackedContactPoints(QObject *obj);
+  void removeTrackedPoseNode(QObject *obj);
+  void removeTrackedField(QObject *obj);
 
 private:
   WbRobot *mRobot;
@@ -91,7 +94,7 @@ private:
   QList<int> mUpdatedNodeIds;
   WbTransform *mNodeGetPosition;
   WbTransform *mNodeGetOrientation;
-  QPair<WbTransform *, WbTransform *> mNodeGetPose;
+  std::pair<WbTransform *, WbTransform *> mNodeGetPose;
   WbSolid *mNodeGetCenterOfMass;
   WbSolid *mNodeGetContactPoints;
   int mNodeIdGetContactPoints;

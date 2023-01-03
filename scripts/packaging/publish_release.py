@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-# Copyright 1996-2022 Cyberbotics Ltd.
+# Copyright 1996-2023 Cyberbotics Ltd.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -133,7 +133,7 @@ for release in repo.get_releases():
             assets[asset.name] = asset
         releaseCommentModified = False
         if 'WEBOTS_HOME' in os.environ:
-            rootPath = os.environ['WEBOTS_HOME']
+            rootPath = os.path.normpath(os.environ['WEBOTS_HOME'])
         else:
             rootPath = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
         for file in os.listdir(os.path.join(rootPath, 'distribution')):

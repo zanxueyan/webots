@@ -1,4 +1,4 @@
-# Copyright 1996-2022 Cyberbotics Ltd.
+# Copyright 1996-2023 Cyberbotics Ltd.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ import os
 import sys
 
 if 'WEBOTS_HOME' in os.environ:
-    path = os.environ['WEBOTS_HOME']
+    path = os.path.normpath(os.environ['WEBOTS_HOME'])
 else:
     path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 if len(sys.argv) != 2:  # no commit id passed as an argument

@@ -1,4 +1,4 @@
-// Copyright 1996-2022 Cyberbotics Ltd.
+// Copyright 1996-2023 Cyberbotics Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@
 #include "WbSFVector2.hpp"
 #include "WbSimulationState.hpp"
 #include "WbTransform.hpp"
+#include "WbVrmlNodeUtilities.hpp"
 #include "WbWrenAbstractResizeManipulator.hpp"
 #include "WbWrenRenderingContext.hpp"
 #include "WbWriter.hpp"
@@ -131,14 +132,14 @@ void WbPlane::createResizeManipulator() {
 }
 
 void WbPlane::setResizeManipulatorDimensions() {
-  WbVector3 scale(size().x(), 0.1f * std::min(mSize->value().x(), mSize->value().y()), size().y());
+  WbVector3 scale(size().x(), size().y(), 0.1f * std::min(mSize->value().x(), mSize->value().y()));
   WbTransform *transform = upperTransform();
   if (transform)
-    scale *= transform->matrix().scale();
+    scale *= transform->absoluteScale();
 
   if (isAValidBoundingObject()) {
     float offset = 1.0f + (wr_config_get_line_scale() / LINE_SCALE_FACTOR);
-    scale *= WbVector3(offset, 1.0f, offset);
+    scale *= WbVector3(offset, offset, 1.0f);
   }
 
   resizeManipulator()->updateHandleScale(scale.ptr());
@@ -147,7 +148,7 @@ void WbPlane::setResizeManipulatorDimensions() {
 
 bool WbPlane::areSizeFieldsVisibleAndNotRegenerator() const {
   const WbField *const sizeField = findField("size", true);
-  return WbNodeUtilities::isVisible(sizeField) && !WbNodeUtilities::isTemplateRegeneratorField(sizeField);
+  return WbVrmlNodeUtilities::isVisible(sizeField) && !WbNodeUtilities::isTemplateRegeneratorField(sizeField);
 }
 
 bool WbPlane::sanitizeFields() {

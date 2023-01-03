@@ -1,4 +1,4 @@
-// Copyright 1996-2022 Cyberbotics Ltd.
+// Copyright 1996-2023 Cyberbotics Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@
 #include "WbPerformanceLog.hpp"
 #include "WbPreferences.hpp"
 #include "WbProject.hpp"
-#include "WbProtoList.hpp"
+#include "WbProtoManager.hpp"
 #include "WbProtoModel.hpp"
 #include "WbRobot.hpp"
 #include "WbSimulationState.hpp"
@@ -114,8 +114,6 @@ WbController::WbController(WbRobot *robot) {
   mHasPendingImmediateAnswer = false;
   mStdoutNeedsFlush = false;
   mStderrNeedsFlush = false;
-  mIpcPath = WbStandardPaths::webotsTmpPath() + "ipc/" + QUrl::toPercentEncoding(mRobot->name());
-  QDir().mkpath(mIpcPath);
 
   connect(mRobot, &WbRobot::controllerExited, this, &WbController::handleControllerExit);
   connect(mRobot, &WbRobot::immediateMessageAdded, this, &WbController::writeImmediateAnswer);
@@ -157,27 +155,28 @@ WbController::~WbController() {
     stream << (unsigned short)0;    // tag of the root device
     stream << (unsigned char)C_ROBOT_QUIT;
     assert(size == buffer.size());
-    mRobot->removeRemoteExternController();
+    if (mRobot)
+      mRobot->removeRemoteExternController();
     if (!mHasBeenTerminatedByItself)
       sendTerminationPacket(mTcpSocket, buffer, size);
-  } else if (mProcess && mProcess->state() != QProcess::NotRunning)
+  } else if (mProcess && mProcess->state() != QProcess::NotRunning) {
     mProcess->terminate();
+    mProcess->deleteLater();
+    mProcess = NULL;
+  }
 
-  if (mExtern) {
+  if (mExtern && mRobot) {
     info(tr("disconnected."));
     WbControlledWorld::instance()->externConnection(this, false);
   }
 
-  if (mHasBeenTerminatedByItself)
-    mHasBeenTerminatedByItself = false;
-  else {
-    delete mSocket;
-    delete mServer;
-    delete mProcess;
+  delete mProcess;
+  delete mSocket;
+  if (!mHasBeenTerminatedByItself)
     delete mTcpSocket;
-  }
-
-  QDir(mIpcPath).removeRecursively();
+  delete mServer;
+  if (!mIpcPath.isEmpty())
+    QDir(mIpcPath).removeRecursively();
 }
 
 template<class T> void WbController::sendTerminationPacket(const T &socket, const QByteArray &buffer, const int size) {
@@ -251,6 +250,7 @@ void WbController::start() {
     const QString remoteUrl = "tcp://<ip_address>:" + QString::number(WbStandardPaths::webotsTmpPathId()) + '/' +
                               QUrl::toPercentEncoding(mRobot->name());
     info(tr("waiting for connection on %1 or on %2").arg(localUrl).arg(remoteUrl));
+    WbControlledWorld::instance()->externConnection(this, false);
     if (WbWorld::printExternUrls()) {
       std::cout << localUrl.toUtf8().constData() << std::endl;
       std::cout << remoteUrl.toUtf8().constData() << std::endl;
@@ -267,15 +267,6 @@ void WbController::start() {
     }
     mType = findType(mControllerPath);
     setProcessEnvironment();
-// on Windows, java is unable to find class in a path including UTF-8 characters (e.g., Chinese)
-#ifdef _WIN32
-    if ((mType == WbFileUtil::CLASS || mType == WbFileUtil::JAR) &&
-        QString(mControllerPath.toUtf8()) != QString::fromLocal8Bit(mControllerPath.toLocal8Bit()))
-      WbLog::warning(tr("'%1'\nThe path to this Webots project contains non 8-bit characters. "
-                        "Webots won't be able to execute any Java controller in this path. "
-                        "Please move this Webots project into a folder with only 8-bit characters.")
-                       .arg(mControllerPath));
-#endif
     switch (mType) {
       case WbFileUtil::EXECUTABLE:
         (name() == "<generic>") ? startGenericExecutable() : startExecutable();
@@ -304,8 +295,9 @@ void WbController::start() {
         mType = WbFileUtil::EXECUTABLE;
     }
   }
-  // recover from a crash, when the previous server instance has not been cleaned up
 
+  mIpcPath = WbStandardPaths::webotsTmpPath() + "ipc/" + QUrl::toPercentEncoding(mRobot->name());
+  QDir().mkpath(mIpcPath);
   const QString fileName = mIpcPath + '/' + (mExtern ? "extern" : "intern");
 #ifndef _WIN32
   const QString &serverName = fileName;
@@ -321,6 +313,7 @@ void WbController::start() {
   file.write("");
   file.close();
 #endif
+  // recover from a crash, when the previous server instance has not been cleaned up
   bool success = QLocalServer::removeServer(serverName);
   if (!success) {
     WbLog::error(tr("Cannot cleanup the local server (server name = '%1').").arg(serverName));
@@ -548,7 +541,7 @@ void WbController::setProcessEnvironment() {
           if (QDir(protoLibrariesPath).exists())
             librariesSearchPaths << protoLibrariesPath;
         }
-        protoModel = WbProtoList::current()->findModel(protoModel->ancestorProtoName(), "");
+        protoModel = WbProtoManager::instance()->findModel(protoModel->ancestorProtoName(), "", protoModel->diskPath());
       } while (protoModel);
     }
   }
@@ -589,22 +582,7 @@ void WbController::setProcessEnvironment() {
       }
       pythonSourceFile.close();
     }
-#ifdef __APPLE__
-    QProcess process;
-    process.setProcessEnvironment(env);
-    process.start("which", QStringList() << mPythonCommand);
-    process.waitForFinished();
-    const QString output = process.readAll();
-    if (output.startsWith("/usr/local/Cellar/python@"))
-      addToPathEnvironmentVariable(
-        env, "PYTHONPATH", WbStandardPaths::controllerLibPath() + "python" + mPythonShortVersion + "_brew", false, true);
-    else
-      addToPathEnvironmentVariable(env, "PYTHONPATH", WbStandardPaths::controllerLibPath() + "python" + mPythonShortVersion,
-                                   false, true);
-#else
-    addToPathEnvironmentVariable(env, "PYTHONPATH", WbStandardPaths::controllerLibPath() + "python" + mPythonShortVersion,
-                                 false, true);
-#endif
+    addToPathEnvironmentVariable(env, "PYTHONPATH", WbStandardPaths::controllerLibPath() + "python", false, true);
     env.insert("PYTHONIOENCODING", "UTF-8");
   } else if (mType == WbFileUtil::MATLAB) {
     if (mMatlabCommand.isEmpty())
@@ -966,7 +944,7 @@ void WbController::copyBinaryAndDependencies(const QString &filename) {
 
 #ifdef __APPLE__
   // silently change RPATH before launching controller, if the controller is not in the installation path.
-  if (filename.startsWith(WbStandardPaths::webotsHomePath()) || !QFileInfo(filename).isWritable())
+  if (WbFileUtil::isLocatedInInstallationDirectory(filename, true) || !QFileInfo(filename).isWritable())
     return;
 
   QProcess process;

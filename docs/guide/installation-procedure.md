@@ -86,11 +86,6 @@ Or:
 sudo gdebi webots_{{ webots.version.debian_package }}_amd64.deb
 ```
 
-> **Note:**: It is possible to install Webots R2022a on Ubuntu 22.04, but you will have to patch it so that the download of resources works with the correct version of SSL.
-To do this, download [libssl\_1.1.tar.xz](https://cyberbotics.com/files/repository/dependencies/linux64/release/libssl_1.1.tar.xz) and uncompress it with `tar xvf libssl_1.1.tar.xz`.
-Move its contents to the Webots library folder: `sudo mv openssl-1.1/* /usr/local/webots/lib/webots/`.
-You may also want to unset the `XDG_SESSION_TYPE` environment variable to fix a warning showing-up when Webots starts: `unset XDG_SESSION_TYPE`.
-
 #### Installing the "tarball" Package
 
 This section explains how to install Webots from the tarball package (having the `.tar.bz2` extension).
@@ -146,7 +141,7 @@ However, the sand-boxing constraints of snaps yield the following limitations:
 ##### Download Size
 
 The download is significantly bigger as it includes all the dependencies of Webots (ffmpeg, Python, C++ and Java compilers, etc.).
-For Webots R2022a, the download size of the snap is 821MB compared to 290MB of the Debian and tarball packages.
+For Webots R2023a, the download size of the snap is 731MB compared to 183MB of the Debian package.
 
 ##### Extern Controllers
 
@@ -309,6 +304,24 @@ open ~/Applications/Webots.app    # to launch Webots using the open command
 
 Alternatively, you can double-click on the Webots icon to launch it.
 
+#### Troubleshooting for Apple Silicon Users
+
+If you are getting errors like these:
+```bash
+...(mach-o file, but is an incompatible architecture (have (arm64), need (x86_64)))
+```
+
+This is likely caused by Rosetta loading Webots under the x86 architecture instead of the native ARM. Unless you really want to use x86 binaries with your Webots simulation, make sure to turn off Rosetta. Sometimes macOS may try to open the app using Rosetta by default, which may cause issues when it comes to run robot controllers with dependencies on ARM libraries.
+
+To check if it's opened using Rosetta, right click on the Webots application in Finder and select Get Info. 
+
+Make sure that the "Open using Rosetta" setting is unchecked, like in the picture below: 
+
+%figure "Rosetta setting"
+
+![rosetta_setting.png](images/rosetta_setting.png)
+
+%end
 
 #### From the Homebrew Package
 

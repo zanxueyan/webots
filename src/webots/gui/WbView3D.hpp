@@ -1,4 +1,4 @@
-// Copyright 1996-2022 Cyberbotics Ltd.
+// Copyright 1996-2023 Cyberbotics Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -140,10 +140,8 @@ private:
   WbContactPointsRepresentation *mContactPointsRepresentation;
   WbWrenRenderingContext *mWrenRenderingContext;
 
-  WbBaseNode *mSelectedNodeBeforeThumbnail;
-  QList<bool> mCentersOfMassBeforeThumbnail;
-  QList<bool> mCentersOfBuoyancyBeforeThumbnail;
-  QList<bool> mSupportPolygonsBeforeThumbnail;
+  // Store options before creating thumbnail
+  int mOptionalRenderingsMask;
 
   // Cleanup
   void cleanupDrags();

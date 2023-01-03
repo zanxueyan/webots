@@ -14,7 +14,7 @@ Linux users should also hold down the <kbd>ctrl</kbd> key together with the <kbd
 
 %figure "The context menu allows you to perform various actions depending on the current selected object"
 
-![context_menu.png](images/context_menu.png)
+![context_menu.png](images/context_menu.thumbnail.jpg)
 
 %end
 
@@ -33,6 +33,8 @@ Dragging the mouse while pressing a mouse button moves the camera of the 3D wind
 
 - **Camera rotation**: In the 3D window, click on an object with the left mouse button and drag the mouse to rotate the viewpoint around it.
 If you click on the background, the camera will rotate around its own position.
+Dragging the mouse horizontally will rotate the camera around the world up axis.
+Dragging the mouse vertically will rotate the camera around its horizontal axis.
 - **Camera translation**: In the 3D window, press the right button and drag the mouse to translate the camera.
 - **Zooming / Camera rotation**: In the 3D window, press both left and right mouse buttons simultaneously (or just the middle button) and drag the mouse vertically, to zoom in and out.
 Dragging the mouse horizontally will rotate the camera around the viewing axis.
@@ -100,14 +102,14 @@ In order for the all three dimensions to scale by the same amount, or in other w
 ### Applying a Force to a Solid Object with Physics
 
 To apply a force to an object, place the mouse pointer where the force will apply, hold down the <kbd>alt</kbd> key (<kbd>⌥ option</kbd> on some Apple keyboards) and left mouse button together while dragging the mouse.
-Linux users should also hold down the <kbd>ctrl</kbd> key together with the <kbd>alt</kbd> key (<kbd>⌥ option</kbd> on some Apple keyboards).
+In Linux, depending on your window manager, it might be necessary to hold down the <kbd>ctrl</kbd> key together with the <kbd>alt</kbd> key (<kbd>⌥ option</kbd> on some Apple keyboards).
 This way your are drawing a 3D-vector whose end is located on the plane parallel to the view which passes through the point of application.
 The force is computed as follows: *F* [N] = `WorldInfo.dragForceScale` * `Solid.mass` * *d*<sup>3</sup>, where *d* corresponds to the vector created by dragging the mouse (in meters).
 
 ### Applying a Torque to a Solid Object with Physics
 
 To apply a torque to an object, place the mouse pointer on it, hold down the <kbd>alt</kbd> key (<kbd>⌥ option</kbd> on some Apple keyboards) and right mouse button together while dragging the mouse.
-Linux users should also hold down the <kbd>ctrl</kbd> key together with the <kbd>alt</kbd> key (<kbd>⌥ option</kbd> on some Apple keyboards).
+In Linux, depending on your window manager, it might be necessary to hold down the <kbd>ctrl</kbd> key together with the <kbd>alt</kbd> key (<kbd>⌥ option</kbd> on some Apple keyboards).
 Also, macOS users with a one-button mouse should hold down the <kbd>ctrl</kbd> key to emulate the right mouse button.
 This way your are drawing a 3D-vector with origin the center of mass and whose end is located on the plane parallel to the view which passes through this center.
 The object is prompted to turn around the vector direction, the torque is computed as follows: *T* [Nm] = `WorldInfo.dragTorqueScale` * `Solid.mass` * *d*<sup>3</sup>, where *d* corresponds to the vector created by dragging the mouse (in meters).

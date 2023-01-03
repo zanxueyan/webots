@@ -881,7 +881,7 @@ To retrieved an internal field of a PROTO, the `wb_supervisor_node_get_proto_fie
 const double *wb_supervisor_node_get_position(WbNodeRef node);
 const double *wb_supervisor_node_get_orientation(WbNodeRef node);
 const double *wb_supervisor_node_get_pose(WbNodeRef node, WbNodeRef from_node);
-void wb_supervisor_node_enable_pose_tracking(int sampling_period, WbNodeRef node, WbNodeRef from_node);
+void wb_supervisor_node_enable_pose_tracking(WbNodeRef node, int sampling_period, WbNodeRef from_node);
 void wb_supervisor_node_disable_pose_tracking(WbNodeRef node, WbNodeRef from_node);
 ```
 
@@ -1017,8 +1017,11 @@ The matrix is composed of a rotation matrix `R` and a translation vector `T`.
 The `wb_supervisor_node_enable_pose_tracking` function forces Webots to stream poses to the controller.
 It improves the performance as the controller by default uses a request-response pattern to get pose data.
 The `sampling_period` argument determines how often the pose data should be sent to the controller.
+Both the `node` argument (or the node instance for C++, Python and Java) and the `from_node` argument must be a [Transform](transform.md) node (or a derived node).
+If the `from_node` argument is null or it is invalid, it returns the it returns the absolute pose of the node in the global coordinate system.
 
 The `wb_supervisor_node_disable_pose_tracking` function disables pose data tracking.
+Both the node and the `from_node` arguments should match the ones passed to the `wb_supervisor_node_enable_pose_tracking` to successfully disable the tracking.
 
 The "[WEBOTS\_HOME/projects/robots/neuronics/ipr/worlds/ipr\_cube.wbt]({{ url.github_tree }}/projects/robots/neuronics/ipr/worlds/ipr_cube.wbt)" simulation shows how to use these functions to achieve this (see [the controller]({{ url.github_tree }}/projects/robots/neuronics/ipr/controllers/target_coordinates/target_coordinates.c)).
 
@@ -1114,8 +1117,8 @@ The "[WEBOTS\_HOME/projects/samples/howto/center\_of\_mass/worlds/center\_of\_ma
 ---
 
 #### `wb_supervisor_node_get_contact_points`
-#### `wb_supervisor_node_enable_contact_point_tracking`
-#### `wb_supervisor_node_disable_contact_point_tracking`
+#### `wb_supervisor_node_enable_contact_points_tracking`
+#### `wb_supervisor_node_disable_contact_points_tracking`
 
 
 %tab-component "language"
@@ -1126,8 +1129,8 @@ The "[WEBOTS\_HOME/projects/samples/howto/center\_of\_mass/worlds/center\_of\_ma
 #include <webots/supervisor.h>
 
 WbContactPoint *wb_supervisor_node_get_contact_points(WbNodeRef node, bool include_descendants, int *size);
-wb_supervisor_node_enable_contact_point_tracking(WbNodeRef node, int sampling_period, bool include_descendants);
-wb_supervisor_node_disable_contact_point_tracking(WbNodeRef node, bool include_descendants);
+wb_supervisor_node_enable_contact_points_tracking(WbNodeRef node, int sampling_period, bool include_descendants);
+wb_supervisor_node_disable_contact_points_tracking(WbNodeRef node);
 ```
 
 %tab-end
@@ -1141,7 +1144,7 @@ namespace webots {
   class Node {
     ContactPoint *getContactPoints(bool includeDescendants, int *size) const;
     void enableContactPointsTracking(int samplingPeriod, bool includeDescendants = false) const;
-    void disableContactPointsTracking(bool includeDescendants = false) const;
+    void disableContactPointsTracking() const;
     // ...
   }
 }
@@ -1157,7 +1160,7 @@ from controller import Node
 class Node:
     def getContactPoints(includeDescendants=False):
     def enableContactPointsTracking(samplingPeriod, includeDescendants=False):
-    def disableContactPointsTracking(includeDescendants=False):
+    def disableContactPointsTracking():
     # ...
 ```
 
@@ -1171,7 +1174,7 @@ import com.cyberbotics.webots.controller.Node;
 public class Node {
   public ContactPoint[] getContactPoints(boolean includeDescendants);
   public enableContactPointsTracking(int samplingPeriod, boolean includeDescendants = false);
-  public disableContactPointsTracking(boolean includeDescendants = false);
+  public disableContactPointsTracking();
   // ...
 }
 ```
@@ -1182,8 +1185,8 @@ public class Node {
 
 ```MATLAB
 contact_point = wb_supervisor_node_get_contact_points(include_descendants):
-wb_supervisor_node_enable_contact_point_tracking(sampling_period, include_descendants):
-wb_supervisor_node_disable_contact_point_tracking(include_descendants):
+wb_supervisor_node_enable_contact_points_tracking(sampling_period, include_descendants):
+wb_supervisor_node_disable_contact_points_tracking():
 ```
 
 %tab-end
@@ -1193,8 +1196,8 @@ wb_supervisor_node_disable_contact_point_tracking(include_descendants):
 | name | service/topic | data type | data type definition |
 | --- | --- | --- | --- |
 | `/supervisor/node/get_contact_points` | `service` | `webots_ros::node_get_contact_points` | `uint64 node`<br/>`---`<br/>[`webots_ros/ContactPoint[]`](supervisor.md#contact-point) contact_points |
-| `/supervisor/node/enable_contact_point_tracking` | `service` | `webots_ros::enable_contact_point_tracking` | `uint64 node`<br/>`int32 sampling_period`<br/>`bool include_descendants`<br/>`---`<br/>`int32 success` |
-| `/supervisor/node/disable_contact_points_tracking` | `service` | `webots_ros::disable_contact_points_tracking` | `uint64 node`<br/>`bool include_descendants`<br/>`---`<br/>`int32 success` |
+| `/supervisor/node/enable_contact_points_tracking` | `service` | `webots_ros::enable_contact_points_tracking` | `uint64 node`<br/>`int32 sampling_period`<br/>`bool include_descendants`<br/>`---`<br/>`int32 success` |
+| `/supervisor/node/disable_contact_points_tracking` | `service` | `webots_ros::disable_contact_points_tracking` | `uint64 node`<br/>`---`<br/>`int32 success` |
 
 %tab-end
 
@@ -1209,11 +1212,11 @@ The `include_descendants` argument defines whether the descendant nodes should a
 The descendant nodes are the nodes included within the node given as an argument.
 The `size` argument is an output argument and it returns a number of contact points in the list.
 
-The `wb_supervisor_node_enable_contact_point_tracking` function forces Webots to stream contact point data to the controller.
+The `wb_supervisor_node_enable_contact_points_tracking` function forces Webots to stream contact points data to the controller.
 It improves the performance as the controller by default uses a request-response pattern to get data from the field.
-The `sampling_period` argument determines how often the contact point data should be sent to the controller.
+The `sampling_period` argument determines how often the contact points data should be sent to the controller.
 
-The `wb_supervisor_node_disable_contact_point_tracking` function disables contact point data tracking.
+The `wb_supervisor_node_disable_contact_points_tracking` function disables contact points data tracking.
 
 The "[WEBOTS\_HOME/projects/samples/howto/cylinder\_stack/worlds/cylinder\_stack.wbt]({{ url.github_tree }}/projects/samples/howto/cylinder_stack/worlds/cylinder_stack.wbt)" project shows how to use this function.
 
@@ -1977,7 +1980,7 @@ void wb_supervisor_set_label(int id, const char *text, double x, double y, doubl
 namespace webots {
   class Supervisor : public Robot {
     virtual void setLabel(int id, const std::string &label, double xpos, double ypos,
-      double size, int color, double transparency, const std::string &font="Arial");
+      double size, int color, double transparency = 0, const std::string &font = "Arial");
     // ...
   }
 }
@@ -1991,7 +1994,7 @@ namespace webots {
 from controller import Supervisor
 
 class Supervisor (Robot):
-    def setLabel(self, id, label, xpos, ypos, size, color, transparency, font="Arial"):
+    def setLabel(self, id, label, x, y, size, color, transparency=0, font='Arial'):
     # ...
 ```
 
@@ -2004,7 +2007,7 @@ import com.cyberbotics.webots.controller.Supervisor;
 
 public class Supervisor extends Robot {
   public void setLabel(int id, String label, double xpos, double ypos,
-     double size, int color, double transparency, String font);
+     double size, int color, double transparency = 0, String font = "Arial");
   // ...
 }
 ```
@@ -2014,7 +2017,7 @@ public class Supervisor extends Robot {
 %tab "MATLAB"
 
 ```MATLAB
-wb_supervisor_set_label(id, 'text', x, y, size, [r g b], transparency)
+wb_supervisor_set_label(id, 'text', x, y, size, [r g b], transparency, font)
 ```
 
 %tab-end
@@ -3715,8 +3718,8 @@ In order to retrieve the new position of the node, a `wb_robot_step` function ca
 
 An exception to this rule applies if one of the following functions is executed:
 - [`wb_supervisor_field_insert_mf_*`](#wb_supervisor_field_insert_mf_bool)
-- [`wb_supervisor_field_import_mf_*`](#wb_supervisor_field_import_mf_node)
-- [`wb_supervisor_field_import_sf_*`](#wb_supervisor_field_import_sf_node)
+- [`wb_supervisor_field_import_mf_node_from_string`](#wb_supervisor_field_import_mf_node_from_string)
+- [`wb_supervisor_field_import_sf_node_from_string`](#wb_supervisor_field_import_sf_node_from_string)
 - [`wb_supervisor_field_remove_mf`](#wb_supervisor_field_remove_mf)
 - [`wb_supervisor_field_remove_sf`](#wb_supervisor_field_remove_sf)
 
@@ -3897,9 +3900,7 @@ If the item is the [Robot](robot.md) node itself, it is removed only at the end 
 
 ---
 
-#### `wb_supervisor_field_import_mf_node`
 #### `wb_supervisor_field_import_mf_node_from_string`
-#### `wb_supervisor_field_import_sf_node`
 #### `wb_supervisor_field_import_sf_node_from_string`
 
 %tab-component "language"
@@ -3909,10 +3910,7 @@ If the item is the [Robot](robot.md) node itself, it is removed only at the end 
 ```c
 #include <webots/supervisor.h>
 
-void wb_supervisor_field_import_mf_node(WbFieldRef field, int position, const char *filename);
 void wb_supervisor_field_import_mf_node_from_string(WbFieldRef field, int position, const char *node_string);
-
-void wb_supervisor_field_import_sf_node(WbFieldRef field, const char *filename);
 void wb_supervisor_field_import_sf_node_from_string(WbFieldRef field, const char *node_string);
 ```
 
@@ -3925,9 +3923,7 @@ void wb_supervisor_field_import_sf_node_from_string(WbFieldRef field, const char
 
 namespace webots {
   class Field {
-    void importMFNode(int position, const std::string &filename);
     void importMFNodeFromString(int position, const std::string &nodeString);
-    void importSFNode(const std::string &filename);
     void importSFNodeFromString(const std::string &nodeString);
     // ...
   }
@@ -3942,9 +3938,7 @@ namespace webots {
 from controller import Field
 
 class Field:
-    def importMFNode(self, position, filename):
     def importMFNodeFromString(self, position, nodeString):
-    def importSFNode(self, filename):
     def importSFNodeFromString(self, nodeString):
     # ...
 ```
@@ -3957,9 +3951,7 @@ class Field:
 import com.cyberbotics.webots.controller.Field;
 
 public class Field {
-  public void importMFNode(int position, String filename);
   public void importMFNodeFromString(int position, String nodeString);
-  public void importSFNode(String filename);
   public void importSFNodeFromString(String nodeString);
   // ...
 }
@@ -3970,9 +3962,7 @@ public class Field {
 %tab "MATLAB"
 
 ```MATLAB
-wb_supervisor_field_import_mf_node(field, position, 'filename')
 wb_supervisor_field_import_mf_node_from_string(field, position, 'node_string')
-wb_supervisor_field_import_sf_node(field, 'filename')
 wb_supervisor_field_import_sf_node_from_string(field, 'node_string')
 ```
 
@@ -3982,7 +3972,6 @@ wb_supervisor_field_import_sf_node_from_string(field, 'node_string')
 
 | name | service/topic | data type | data type definition |
 | --- | --- | --- | --- |
-| `/supervisor/field/import_node` | `service` | `webots_ros::field_import_node` | `uint64 field`<br/>`int32 position`<br/>`string filename`<br/>`---`<br/>`int32 success` |
 | `/supervisor/field/import_node_from_string` | `service` | `webots_ros::field_import_node_from_string` | `uint64 field`<br/>`int32 position`<br/>`string nodeString`<br/>`---`<br/>`int32 success` |
 
 %tab-end
@@ -3993,11 +3982,14 @@ wb_supervisor_field_import_sf_node_from_string(field, 'node_string')
 
 *import a node into an MF\_NODE or SF\_NODE field (typically a "children" field)*
 
-The `wb_supervisor_field_import_mf_node` and `wb_supervisor_field_import_sf_node` functions import a Webots node into an MF\_NODE or SF\_NODE field.
-This node should be defined in a `.wbo` file referenced by the `filename` parameter.
-Such a file can be produced easily from Webots by selecting a node in the scene tree window and using the `Export` button.
+The `wb_supervisor_field_import_mf_node_from_string` and `wb_supervisor_field_import_sf_node_from_string` functions import a Webots node into an `MF_NODE` or `SF_NODE` field.
+This node should be defined in the `node_string` parameter.
 
-The `position` parameter defines the position in the MF\_NODE where the new node will be inserted.
+> **Note**: only PROTO that have been previously declared as `IMPORTABLE EXTERNPROTO` can be spawned using the supervisor.
+This can be done by pressing the similarly named button above the scene tree.
+More information is available [here](../guide/the-scene-tree.md#importable-externproto-panel).
+
+The `position` parameter defines the position in the `MF_NODE` where the new node will be inserted.
 It can be positive or negative.
 Here are a few examples for the `position` parameter:
 
@@ -4008,13 +4000,9 @@ Here are a few examples for the `position` parameter:
 - -2: insert at the second position from the end of the scene tree.
 - -3: insert at the third position from the end.
 
-The `filename` parameter can be specified as an absolute or a relative path.
-In the later case, it is relative to the location of the supervisor controller.
-
 This function is typically used in order to add a node into a "children" field.
 Note that a node can be imported into the scene tree by calling this function with the "children" field of the root node.
 
-The `wb_supervisor_field_import_sf/mf_node_from_string` functions are very similar to the `wb_supervisor_field_import_sf/mf_node` function, except that the node is constructed from the `node_string` string.
 For example, if you want to create a new robot with a specific controller:
 
 %tab-component "language"
@@ -4188,7 +4176,7 @@ typedef struct {
 %tab "C++"
 
 ```cpp
-#include <webots/Camera.hpp>
+#include <webots/Node.hpp>
 
 namespace webots {
   typedef struct {

@@ -1,4 +1,4 @@
-// Copyright 1996-2022 Cyberbotics Ltd.
+// Copyright 1996-2023 Cyberbotics Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -71,7 +71,7 @@ public:
   double roughness() const;
 
   QStringList fieldsToSynchronizeWithX3D() const override;
-  void exportShallowNode(WbWriter &writer) const;
+  void exportShallowNode(const WbWriter &writer) const;
 
 protected:
   bool exportNodeHeader(WbWriter &writer) const override;
@@ -89,6 +89,7 @@ private:
   double getRedValueInTexture(WbImageTexture *texture, const WbVector2 &uv) const;
 
   void init();
+  void sanitizeFields();
 
   WbSFColor *mBaseColor;
   WbSFNode *mBaseColorMap;

@@ -1,4 +1,4 @@
-# Copyright 1996-2022 Cyberbotics Ltd.
+# Copyright 1996-2023 Cyberbotics Ltd.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
 
 null :=
 space := $(null) $(null)
-WEBOTS_HOME_PATH=$(subst $(space),\ ,$(strip $(subst \,/,$(WEBOTS_HOME))))
+WEBOTS_HOME_PATH?=$(subst $(space),\ ,$(strip $(subst \,/,$(WEBOTS_HOME))))
 WEBOTS_HOME_PATH_NO_ESCAPE=$(subst \,/,$(WEBOTS_HOME))
 include $(WEBOTS_HOME_PATH)/resources/Makefile.os.include
 
@@ -64,10 +64,10 @@ LIB += -L"$(WEBOTS_CONTROLLER_LIB_PATH)" -lCppController -lCppCar -lCppDriver
 # rules
 ifeq ($(SWIG_EXISTS),)
 all release debug profile:
-	@echo -e "# \033[0;33mSWIG not installed, skipping Java API\033[0m"
+	@$(ECHO) "# \033[0;33mSWIG not installed, skipping Java API\033[0m"
 else ifeq ($(JAVA_HOME),)
 all release debug profile:
-	@echo -e "# \033[0;33mJava not installed or 'JAVA_HOME' not set, skipping Java API\033[0m"
+	@$(ECHO) "# \033[0;33mJava not installed or 'JAVA_HOME' not set, skipping Java API\033[0m"
 else
 all release debug profile: $(JAR) $(LIBRARY)
 

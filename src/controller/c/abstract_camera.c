@@ -1,5 +1,5 @@
 /*
- * Copyright 1996-2022 Cyberbotics Ltd.
+ * Copyright 1996-2023 Cyberbotics Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,7 +39,7 @@ void wb_abstract_camera_cleanup(WbDevice *d) {
   free(c);
 }
 
-void wb_abstract_camera_new(WbDevice *d, unsigned int id, int w, int h, double fov, double camnear, bool spherical) {
+void wb_abstract_camera_new(WbDevice *d, unsigned int id, int w, int h, double fov, double camnear, bool planar) {
   wb_abstract_camera_cleanup(d);
   AbstractCamera *c = malloc(sizeof(AbstractCamera));
   c->enable = false;
@@ -48,7 +48,7 @@ void wb_abstract_camera_new(WbDevice *d, unsigned int id, int w, int h, double f
   c->height = h;
   c->fov = fov;
   c->camnear = camnear;
-  c->spherical = spherical;
+  c->planar = planar;
   c->sampling_period = 0;
   c->image = image_new();
 
@@ -110,62 +110,62 @@ void abstract_camera_allocate_image(WbDevice *d, int size) {
 }
 
 void wb_abstract_camera_enable(WbDevice *d, int sampling_period) {
-  robot_mutex_lock_step();
+  robot_mutex_lock();
   AbstractCamera *ac = d->pdata;
 
   if (ac) {
     ac->enable = true;
     ac->sampling_period = sampling_period;
   }
-  robot_mutex_unlock_step();
+  robot_mutex_unlock();
 }
 
 int wb_abstract_camera_get_sampling_period(WbDevice *d) {
   int sampling_period = 0;
-  robot_mutex_lock_step();
+  robot_mutex_lock();
   AbstractCamera *ac = d->pdata;
   if (ac)
     sampling_period = ac->sampling_period;
-  robot_mutex_unlock_step();
+  robot_mutex_unlock();
   return sampling_period;
 }
 
 int wb_abstract_camera_get_height(WbDevice *d) {
   int result = -1;
-  robot_mutex_lock_step();
+  robot_mutex_lock();
   AbstractCamera *ac = d->pdata;
   if (ac)
     result = ac->height;
-  robot_mutex_unlock_step();
+  robot_mutex_unlock();
   return result;
 }
 
 int wb_abstract_camera_get_width(WbDevice *d) {
   int result = -1;
-  robot_mutex_lock_step();
+  robot_mutex_lock();
   AbstractCamera *ac = d->pdata;
   if (ac)
     result = ac->width;
-  robot_mutex_unlock_step();
+  robot_mutex_unlock();
   return result;
 }
 
 double wb_abstract_camera_get_fov(WbDevice *d) {
   double result = NAN;
-  robot_mutex_lock_step();
+  robot_mutex_lock();
   AbstractCamera *ac = d->pdata;
   if (ac)
     result = ac->fov;
-  robot_mutex_unlock_step();
+  robot_mutex_unlock();
   return result;
 }
 
 double wb_abstract_camera_get_near(WbDevice *d) {
   double result = NAN;
-  robot_mutex_lock_step();
+  robot_mutex_lock();
   AbstractCamera *ac = d->pdata;
   if (ac)
     result = ac->camnear;
-  robot_mutex_unlock_step();
+  robot_mutex_unlock();
   return result;
 }

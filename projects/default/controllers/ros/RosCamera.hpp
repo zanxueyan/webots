@@ -1,4 +1,4 @@
-// Copyright 1996-2022 Cyberbotics Ltd.
+// Copyright 1996-2023 Cyberbotics Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@
 #include <webots_ros/save_image.h>
 #include <webots_ros/set_bool.h>
 #include <webots_ros/set_float.h>
+#include "sensor_msgs/CameraInfo.h"
 
 using namespace webots;
 
@@ -61,12 +62,15 @@ public:
 private:
   ros::Publisher createImagePublisher(const std::string &name);
   void cleanup() { mCamera->disable(); }
+  void createCameraInfoPublisher();
+  sensor_msgs::CameraInfo createCameraInfoMessage();
 
   bool mIsRecognitionSegmentationEnabled;
 
   Camera *mCamera;
   ros::Publisher mRecognitionObjectsPublisher;
   ros::Publisher mRecognitionSegmentationPublisher;
+  ros::Publisher mCameraInfoPublisher;
   ros::ServiceServer mInfoServer;
   ros::ServiceServer mFocusInfoServer;
   ros::ServiceServer mZoomInfoServer;

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-# Copyright 1996-2022 Cyberbotics Ltd.
+# Copyright 1996-2023 Cyberbotics Ltd.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -29,14 +29,15 @@ class TestTextures(unittest.TestCase):
 
     def setUp(self):
         """Get all the world file."""
+        WEBOTS_HOME = os.path.normpath(os.environ['WEBOTS_HOME'])
         self.worlds = []
-        for rootPath, dirNames, fileNames in os.walk(os.environ['WEBOTS_HOME'] + os.sep + 'projects'):
+        for rootPath, dirNames, fileNames in os.walk(os.path.join(WEBOTS_HOME, 'projects')):
             for fileName in fnmatch.filter(fileNames, '*.wbt'):
                 world = os.path.join(rootPath, fileName)
                 self.worlds.append(world)
 
         self.wbproj = []
-        for rootPath, dirNames, fileNames in os.walk(os.environ['WEBOTS_HOME'] + os.sep + 'projects'):
+        for rootPath, dirNames, fileNames in os.walk(os.path.join(WEBOTS_HOME, 'projects')):
             for fileName in fnmatch.filter(fileNames, '*.wbproj'):
                 wbproj = os.path.join(rootPath, fileName)
                 self.wbproj.append(wbproj)

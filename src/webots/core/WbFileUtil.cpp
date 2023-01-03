@@ -1,4 +1,4 @@
-// Copyright 1996-2022 Cyberbotics Ltd.
+// Copyright 1996-2023 Cyberbotics Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -31,14 +31,14 @@
 
 bool WbFileUtil::copyAndReplaceString(const QString &sourcePath, const QString &destinationPath, const QString &before,
                                       const QString &after) {
-  QList<QPair<QString, QString>> values;
-  values << QPair<QString, QString>(before, after);
+  QList<std::pair<QString, QString>> values;
+  values << std::pair<QString, QString>(before, after);
 
   return copyAndReplaceString(sourcePath, destinationPath, values);
 }
 
 bool WbFileUtil::copyAndReplaceString(const QString &sourcePath, const QString &destinationPath,
-                                      QList<QPair<QString, QString>> values) {
+                                      QList<std::pair<QString, QString>> values) {
   QFile sourceFile(sourcePath);
   if (!sourceFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
     return false;
@@ -155,9 +155,9 @@ bool WbFileUtil::isLocatedInDirectory(const QString &file, const QString &direct
 #endif
 }
 
-bool WbFileUtil::isLocatedInInstallationDirectory(const QString &file) {
+bool WbFileUtil::isLocatedInInstallationDirectory(const QString &file, bool ignoreAllowModify) {
   const bool inWebots = WbFileUtil::isLocatedInDirectory(file, WbStandardPaths::webotsHomePath());
-  return inWebots && !WbPreferences::booleanEnvironmentVariable("WEBOTS_ALLOW_MODIFY_INSTALLATION");
+  return inWebots && (ignoreAllowModify || !WbPreferences::booleanEnvironmentVariable("WEBOTS_ALLOW_MODIFY_INSTALLATION"));
 }
 
 void WbFileUtil::searchDirectoryNameRecursively(QStringList &results, const QString &directoryName, const QString &root) {

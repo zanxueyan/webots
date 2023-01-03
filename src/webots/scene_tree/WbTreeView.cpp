@@ -1,4 +1,4 @@
-// Copyright 1996-2022 Cyberbotics Ltd.
+// Copyright 1996-2023 Cyberbotics Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -76,7 +76,7 @@ WbTreeView::~WbTreeView() {
 
 void WbTreeView::focusInEvent(QFocusEvent *event) {
   QTreeView::focusInEvent(event);
-  WbActionManager::instance()->enableTextEditActions(false);
+  WbActionManager::instance()->enableTextEditActions(false, true);
   WbActionManager::instance()->setFocusObject(this);
 
   // when this widget gets keyboard focus the higlighted color of the current

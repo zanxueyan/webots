@@ -1,4 +1,4 @@
-// Copyright 1996-2022 Cyberbotics Ltd.
+// Copyright 1996-2023 Cyberbotics Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -85,7 +85,7 @@ WbGeometry::WbGeometry(const WbNode &other) : WbBaseNode(other) {
 WbGeometry::~WbGeometry() {
   delete mResizeManipulator;
   if (mOdeGeom)
-    destroyOdeObjects();  // for WbGeometries lying in a boundinObject
+    destroyOdeObjects();  // for WbGeometries lying in a boundingObject
   delete mOdeMass;
   delete mBoundingSphere;
 
@@ -175,19 +175,6 @@ void WbGeometry::checkFluidBoundingObjectOrientation() {
 /////////////////////////
 // Create WREN Objects //
 /////////////////////////
-
-void WbGeometry::checkForResizeManipulator() {
-  if (!mResizeManipulator && hasResizeManipulator()) {
-    createResizeManipulator();
-    if (mResizeManipulator)
-      mResizeManipulator->attachTo(wrenNode());
-  }
-}
-
-void WbGeometry::updateContextDependentObjects() {
-  checkForResizeManipulator();
-  WbBaseNode::updateContextDependentObjects();
-}
 
 void WbGeometry::setPickable(bool pickable) {
   if (!mWrenRenderable || isInBoundingObject())
@@ -429,13 +416,21 @@ void WbGeometry::updateResizeHandlesSize() {
 void WbGeometry::createResizeManipulatorIfNeeded() {
   if (!mResizeManipulatorInitialized) {
     mResizeManipulatorInitialized = true;
-    checkForResizeManipulator();
+    if (!mResizeManipulator && hasResizeManipulator()) {
+      createResizeManipulator();
+      if (mResizeManipulator)
+        mResizeManipulator->attachTo(wrenNode());
+    }
   }
 }
 
 WbWrenAbstractResizeManipulator *WbGeometry::resizeManipulator() {
   createResizeManipulatorIfNeeded();
   return mResizeManipulator;
+}
+
+bool WbGeometry::isResizeManipulatorAttached() const {
+  return mResizeManipulator ? mResizeManipulator->isAttached() : false;
 }
 
 void WbGeometry::attachResizeManipulator() {
@@ -475,7 +470,10 @@ void WbGeometry::setOdeData(dGeomID geom, WbMatter *matterAncestor) {
   if (!areOdeObjectsCreated())
     createOdeObjects();
 
+  if (mOdeGeom)
+    dGeomDestroy(mOdeGeom);
   mOdeGeom = geom;
+
   WbSolid *s = dynamic_cast<WbSolid *>(matterAncestor);
   if (s)
     dGeomSetData(geom, new WbOdeGeomData(s, this));
@@ -612,7 +610,7 @@ int WbGeometry::constraintType() const {
   if (geometryType == WB_NODE_SPHERE || geometryType == WB_NODE_CAPSULE)
     constraint = WbWrenAbstractResizeManipulator::UNIFORM;
   else if (geometryType == WB_NODE_CYLINDER)
-    constraint = WbWrenAbstractResizeManipulator::X_EQUAL_Z;
+    constraint = WbWrenAbstractResizeManipulator::X_EQUAL_Y;
 
   return constraint;
 }

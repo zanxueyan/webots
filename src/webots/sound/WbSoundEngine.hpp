@@ -1,4 +1,4 @@
-// Copyright 1996-2022 Cyberbotics Ltd.
+// Copyright 1996-2023 Cyberbotics Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -43,6 +43,8 @@ namespace WbSoundEngine {
   WbSoundClip *soundFromText(const QString &text, const QString &engine, const QString &language);
   void clearAllMotorSoundSources();
   void clearAllContactSoundSources();
+  void updateViewpointConnection();
+
 };  // namespace WbSoundEngine
 
 #endif

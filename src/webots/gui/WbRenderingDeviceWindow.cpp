@@ -1,4 +1,4 @@
-// Copyright 1996-2022 Cyberbotics Ltd.
+// Copyright 1996-2023 Cyberbotics Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -148,7 +148,7 @@ WbRenderingDeviceWindow::WbRenderingDeviceWindow(WbRenderingDevice *device) :
     windowHeight = textureHeight * newPixelSize;
   }
 
-  const WbRobot *const robotNode = dynamic_cast<const WbRobot *const>(WbNodeUtilities::findTopNode(mDevice));
+  const WbRobot *const robotNode = WbNodeUtilities::findRobotAncestor(mDevice);
   assert(robotNode);
   setTitle(robotNode->name() + ": " + mDevice->name());
   resize(windowWidth, windowHeight);

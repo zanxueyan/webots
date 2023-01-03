@@ -1,4 +1,4 @@
-// Copyright 1996-2022 Cyberbotics Ltd.
+// Copyright 1996-2023 Cyberbotics Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ private slots:
   void sendUpdatePackageToClients() override;
   void processTextMessage(QString) override;
 
-  void propagateNodeDeletion(WbNode *node);
+  void propagateNodeDeletion(WbNode *node) override;
 
 private:
   void create(int port) override;
@@ -47,7 +47,6 @@ private:
   void sendWorldStateToClient(QWebSocket *client, const QString &state) const;
 
   QString mX3dWorld;
-  QHash<QString, QString> mX3dWorldTextures;
   double mX3dWorldGenerationTime;
 
   qint64 mLastUpdateTime;

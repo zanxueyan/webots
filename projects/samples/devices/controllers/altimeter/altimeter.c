@@ -1,5 +1,5 @@
 /*
- * Copyright 1996-2022 Cyberbotics Ltd.
+ * Copyright 1996-2023 Cyberbotics Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,10 @@
  */
 
 /*
- * Description:
- *   Use altimeter to control robot's
- *   ascent and descent of ramp.
+ * Description: Use altimeter to control robot's ascent and descent of ramp.
  */
 
 #include <webots/altimeter.h>
-#include <webots/led.h>
 #include <webots/motor.h>
 #include <webots/robot.h>
 

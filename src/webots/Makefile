@@ -1,4 +1,4 @@
-# Copyright 1996-2022 Cyberbotics Ltd.
+# Copyright 1996-2023 Cyberbotics Ltd.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -43,7 +43,7 @@ WB_CONTROL_INCLUDE       = $(QT_CORE_INCLUDE) $(QT_NETWORK_INCLUDE) -Icore -Ieng
 # dependency of NODES on QT_GUI is necessary in WbImageTexture to retrieve the size of a texture before loading it in Wren
 WB_NODES_INCLUDE         = $(QT_CORE_INCLUDE) $(QT_NETWORK_INCLUDE) $(QT_GUI_INCLUDE) $(ODE_INCLUDE) $(CONTROLLER_INCLUDE) $(OIS_INCLUDE) $(FREETYPE_INCLUDE) $(WREN_INCLUDE) $(STB_INCLUDE) $(ASSIMP_INCLUDE) -Iapp -Icore -isystem external/siphash -Imaths -Inodes -Inodes/utils -Iode -Iplugins -Isound -Iutil -Ivrml
 WB_APP_INCLUDE           = $(QT_CORE_INCLUDE) $(QT_NETWORK_INCLUDE) $(ODE_INCLUDE) $(WREN_INCLUDE) -Icontrol -Icore -Ieditor -Iengine -Imaths -Inodes -Inodes/utils -Iplugins -Iscene_tree -Ivrml
-WB_SCENE_TREE_INCLUDE    = $(QT_CORE_INCLUDE) $(QT_GUI_INCLUDE) $(QT_WIDGETS_INCLUDE) $(ASSIMP_INCLUDE) -isystem external/siphash -Iapp -Icore -Iwidgets -Imaths -Inodes -Inodes/utils -Iode -Iuser_commands -Ivrml
+WB_SCENE_TREE_INCLUDE    = $(QT_CORE_INCLUDE) $(QT_GUI_INCLUDE) $(QT_WIDGETS_INCLUDE) $(ASSIMP_INCLUDE) -isystem external/siphash -Iapp -Icore -Ieditor -Imaths -Inodes -Inodes/utils -Iode -Iuser_commands -Ivrml -Iwidgets
 WB_SOUND_INCLUDE         = $(QT_CORE_INCLUDE) $(QT_XML_INCLUDE) $(ODE_INCLUDE) $(OPENAL_INCLUDE) $(PICO_INCLUDE) -Icore -Imaths -Inodes -Inodes/utils -Isound -Ivrml
 WB_GUI_INCLUDE           = $(QT_CORE_INCLUDE) $(QT_NETWORK_INCLUDE) $(QT_WEBSOCKETS_INCLUDE) $(QT_GUI_INCLUDE) $(QT_WIDGETS_INCLUDE) $(QT_OPENGL_INCLUDE) $(QT_OPENGL_WIDGETS_INCLUDE) $(ODE_INCLUDE) $(WREN_INCLUDE) -Iapp -Icontrol -Icore -Iwidgets -Ieditor -Iengine -isystem external/siphash -Imaths -Inodes -Inodes/utils -Iplugins -Iscene_tree -Isound -Iuser_commands -Iutil -Ivrml
 WB_RENDER_INCLUDE        = $(QT_CORE_INCLUDE) $(QT_GUI_INCLUDE) $(QT_OPENGL_INCLUDE) $(QT_WIDGETS_INCLUDE) $(WREN_INCLUDE) -isystem external/siphash
@@ -273,6 +273,7 @@ QT_SOURCES = WbAboutBox.cpp \
   WbDockWidget.cpp \
   WbDoubleEditor.cpp \
   WbDoubleSpinBox.cpp \
+  WbDownloadManager.cpp \
   WbDownloader.cpp \
   WbDragResizeEvent.cpp \
   WbDragScaleEvent.cpp \
@@ -281,6 +282,8 @@ QT_SOURCES = WbAboutBox.cpp \
   WbElevationGrid.cpp \
   WbEmitter.cpp \
   WbExtendedStringEditor.cpp \
+  WbExternProtoEditor.cpp \
+  WbInsertExternProtoDialog.cpp \
   WbField.cpp \
   WbFieldChecker.cpp \
   WbFieldDoubleSpinBox.cpp \
@@ -346,6 +349,7 @@ QT_SOURCES = WbAboutBox.cpp \
   WbNewPhysicsPluginWizard.cpp \
   WbNewProjectWizard.cpp \
   WbNewProtoWizard.cpp \
+  WbNewWorldWizard.cpp \
   WbNewVersionDialog.cpp \
   WbNode.cpp \
   WbNodeEditor.cpp \
@@ -373,8 +377,11 @@ QT_SOURCES = WbAboutBox.cpp \
   WbPropeller.cpp \
   WbProject.cpp \
   WbProjectRelocationDialog.cpp \
+  WbProtoIcon.cpp \
+  WbProtoManager.cpp \
   WbProtoModel.cpp \
   WbProtoTemplateEngine.cpp \
+  WbProtoTreeItem.cpp \
   WbQjsFile.cpp \
   WbRadar.cpp \
   WbRadio.cpp \
@@ -527,8 +534,6 @@ OTHER_SOURCES = \
   WbPicoTextToSpeech.cpp \
   WbPolygon.cpp \
   WbPrecision.cpp \
-  WbProtoCachedInfo.cpp \
-  WbProtoList.cpp \
   WbRandom.cpp \
   WbRay.cpp \
   WbResetCommand.cpp \
@@ -554,6 +559,7 @@ OTHER_SOURCES = \
   WbUrl.cpp \
   WbVector4.cpp \
   WbVersion.cpp \
+  WbVrmlNodeUtilities.cpp \
   WbWaveFile.cpp \
   WbWheelEvent.cpp \
   WbWrenAbstractPostProcessingEffect.cpp \

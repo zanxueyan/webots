@@ -1,4 +1,4 @@
-// Copyright 1996-2022 Cyberbotics Ltd.
+// Copyright 1996-2023 Cyberbotics Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -65,8 +65,17 @@ void WbNewPhysicsPluginWizard::updateUI() {
 bool WbNewPhysicsPluginWizard::validateCurrentPage() {
   updateUI();
 
-  if (currentId() == NAME)
-    return !mNameEdit->text().isEmpty();
+  if (currentId() == NAME) {
+    if (mNameEdit->text().isEmpty()) {
+      WbMessageBox::warning(tr("Please specify a physics plugin name."), this, tr("Invalid physics plugin name"));
+      return false;
+    }
+    if (QDir(WbProject::current()->physicsPluginsPath() + mNameEdit->text()).exists()) {
+      WbMessageBox::warning(tr("A physics plugin with this name already exists, please choose a different name."), this,
+                            tr("Invalid physics plugin name"));
+      return false;
+    }
+  }
 
   return true;
 }

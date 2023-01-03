@@ -1,4 +1,4 @@
-// Copyright 1996-2022 Cyberbotics Ltd.
+// Copyright 1996-2023 Cyberbotics Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,12 +14,15 @@
 
 #include "WbContactProperties.hpp"
 
+#include "WbDownloadManager.hpp"
 #include "WbDownloader.hpp"
 #include "WbFieldChecker.hpp"
 #include "WbNetwork.hpp"
 #include "WbSoundEngine.hpp"
 #include "WbUrl.hpp"
 #include "WbWorld.hpp"
+
+static const QString gUrlNames[3] = {"bumpSound", "rollSound", "slideSound"};
 
 void WbContactProperties::init() {
   mMaterial1 = findSFString("material1");
@@ -62,21 +65,19 @@ void WbContactProperties::downloadAsset(const QString &url, int index) {
   if (url.isEmpty())
     return;
 
-  const QString &completeUrl = WbUrl::computePath(this, "url", url, false);
-  if (!WbUrl::isWeb(completeUrl) || WbNetwork::instance()->isCached(completeUrl))
+  const QString &completeUrl = WbUrl::computePath(this, gUrlNames[index], url);
+  if (!WbUrl::isWeb(completeUrl) || WbNetwork::instance()->isCachedWithMapUpdate(completeUrl))
     return;
 
-  if (mDownloader[index] != NULL)
-    delete mDownloader[index];
-  mDownloader[index] = new WbDownloader(this);
+  delete mDownloader[index];
+  mDownloader[index] = WbDownloadManager::instance()->createDownloader(QUrl(completeUrl), this);
   if (isPostFinalizedCalled()) {
     void (WbContactProperties::*callback)(void);
     callback = index == 0 ? &WbContactProperties::updateBumpSound :
                             (index == 1 ? &WbContactProperties::updateRollSound : &WbContactProperties::updateSlideSound);
     connect(mDownloader[index], &WbDownloader::complete, this, callback);
   }
-
-  mDownloader[index]->download(QUrl(completeUrl));
+  mDownloader[index]->download();
 }
 
 void WbContactProperties::downloadAssets() {
@@ -218,31 +219,36 @@ void WbContactProperties::loadSound(int index, const QString &sound, const QStri
     return;
   }
 
-  const QString completeUrl = WbUrl::computePath(this, "url", sound, false);
+  const QString completeUrl = WbUrl::computePath(this, gUrlNames[index], sound, true);
   if (WbUrl::isWeb(completeUrl)) {
     if (mDownloader[index] && !mDownloader[index]->error().isEmpty()) {
       warn(mDownloader[index]->error());  // failure downloading or file does not exist (404)
       *clip = NULL;
-      // downloader needs to be deleted in case the url is switched back to something valid
+      // downloader needs to be deleted in case the URL is switched back to something valid
       delete mDownloader[index];
       mDownloader[index] = NULL;
       return;
     }
-    if (!WbNetwork::instance()->isCached(completeUrl)) {
+    if (!WbNetwork::instance()->isCachedWithMapUpdate(completeUrl)) {
       downloadAsset(completeUrl, index);  // changed by supervisor
       return;
     }
   }
 
   WbSoundEngine::clearAllContactSoundSources();
-  // determine extension from url since for remotely defined assets the cached version doesn't retain this information
+  // determine extension from URL since for remotely defined assets the cached version doesn't retain this information
   const QString extension = sound.mid(sound.lastIndexOf('.') + 1).toLower();
 
   if (WbUrl::isWeb(completeUrl)) {
-    assert(WbNetwork::instance()->isCached(completeUrl));  // by this point, the asset should be cached
+    assert(WbNetwork::instance()->isCachedNoMapUpdate(completeUrl));  // by this point, the asset should be cached
     *clip = WbSoundEngine::sound(WbNetwork::instance()->get(completeUrl), extension);
-  } else
-    *clip = WbSoundEngine::sound(WbUrl::computePath(this, name, completeUrl), extension);
+  }
+  // completeUrl can contain missing_texture.png if the user inputs an invalid .png or .jpg file in the field. In this case,
+  // clip should be set to NULL
+  else if (!(completeUrl.isEmpty() || completeUrl == WbUrl::missingTexture()))
+    *clip = WbSoundEngine::sound(WbUrl::computePath(this, name, completeUrl, true), extension);
+  else
+    *clip = NULL;
 }
 
 void WbContactProperties::updateBumpSound() {

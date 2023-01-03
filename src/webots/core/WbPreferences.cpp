@@ -1,4 +1,4 @@
-// Copyright 1996-2022 Cyberbotics Ltd.
+// Copyright 1996-2023 Cyberbotics Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -84,7 +84,7 @@ WbPreferences::WbPreferences(const QString &companyName, const QString &applicat
   setDefault("View3d/hideAllRangeFinderOverlays", false);
   setDefault("View3d/hideAllDisplayOverlays", false);
   setDefault("Network/cacheSize", 1024);
-  setDefault("Network/uploadUrl", "https://beta.webots.cloud");
+  setDefault("Network/uploadUrl", "https://webots.cloud");
   setDefault("RobotWindow/newBrowserWindow", false);
   setDefault("RobotWindow/browser", "");
 
@@ -93,7 +93,7 @@ WbPreferences::WbPreferences(const QString &companyName, const QString &applicat
   setDefault("Editor/font", "Consolas,10");
   setDefault("General/theme", "webots_classic.qss");
 #elif defined(__APPLE__)
-  setDefault("Editor/font", "Courier,14");  // "Monospace" isn't supported under MacOS
+  setDefault("Editor/font", "Courier New,14");  // "Monospace" isn't supported under MacOS
   setDefault("General/theme", "webots_classic.qss");
 #else
   setDefault("Editor/font", "Monospace, 9");

@@ -1,4 +1,4 @@
-// Copyright 1996-2022 Cyberbotics Ltd.
+// Copyright 1996-2023 Cyberbotics Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -177,6 +177,10 @@ QString WbTriangleMesh::init(const WbMFVector3 *coord, const WbMFInt *coordIndex
 QString WbTriangleMesh::init(const double *coord, const double *normal, const double *texCoord, const unsigned int *index,
                              int numberOfVertices, int indexSize) {
   cleanup();
+  // validity switch
+  mValid = true;
+  if (numberOfVertices == 0)
+    return QString();
 
   mTextureCoordinatesValid = texCoord != NULL;
   mNormalsValid = normal != NULL;
@@ -237,9 +241,6 @@ QString WbTriangleMesh::init(const double *coord, const double *normal, const do
       }
     }
   }
-
-  // validity switch
-  mValid = true;
 
   return QString("");
 }

@@ -1,4 +1,4 @@
-// Copyright 1996-2022 Cyberbotics Ltd.
+// Copyright 1996-2023 Cyberbotics Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -39,8 +39,7 @@ WbAbstractAppearance::WbAbstractAppearance(const WbNode &other) : WbBaseNode(oth
   init();
 }
 
-WbAbstractAppearance::WbAbstractAppearance(const QString &modelName, const aiMaterial *material) :
-  WbBaseNode(modelName, material) {
+WbAbstractAppearance::WbAbstractAppearance(const QString &modelName, const aiMaterial *material) : WbBaseNode(modelName) {
   aiString nameString("PBRAppearance");
   material->Get(AI_MATKEY_NAME, nameString);
   mName = new WbSFString(QString(nameString.C_Str()));

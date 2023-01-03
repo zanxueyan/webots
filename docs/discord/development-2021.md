@@ -447,13 +447,13 @@ Hello `@Azer Babaev [Starkit, TC]`, feel free to add translations, we will be ha
 ##### Azer Babaev [Starkit, TC] 01/28/2021 22:19:39
 Thank you. Good to know that it is so easy. I shall arrange people at my side to add Russian translation.
 
-##### Professor Felix 01/29/2021 04:31:27
+##### Devan(Professor Felix) 01/29/2021 04:31:27
 does webots use git LFS? I'm just a student who cloned the repo to try and understand some of the internal codebase for educational purposes and I noticed the file size was over 5GB
 
 ##### Olivier Michel [Cyberbotics] 01/29/2021 07:48:43
 You should not need git LFS to check out Webots as Webots doesn't contain any file larger than 5GB.
 
-##### Professor Felix 01/29/2021 08:33:24
+##### Devan(Professor Felix) 01/29/2021 08:33:24
 I know I just thought GitHub itself preferred to keep repositories under 2GB
 
 

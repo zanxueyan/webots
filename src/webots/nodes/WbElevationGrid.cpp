@@ -1,4 +1,4 @@
-// Copyright 1996-2022 Cyberbotics Ltd.
+// Copyright 1996-2023 Cyberbotics Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@
 #include "WbSFInt.hpp"
 #include "WbSimulationState.hpp"
 #include "WbTransform.hpp"
+#include "WbVrmlNodeUtilities.hpp"
 #include "WbWrenMeshBuffers.hpp"
 #include "WbWrenRenderingContext.hpp"
 
@@ -370,7 +371,7 @@ void WbElevationGrid::setResizeManipulatorDimensions() {
   WbVector3 scale(xSpacing(), ySpacing(), 1.0f);
   WbTransform *transform = upperTransform();
   if (transform)
-    scale *= transform->matrix().scale();
+    scale *= transform->absoluteScale();
 
   if (isAValidBoundingObject())
     scale *= WbVector3(1.0f, 1.0f, 1.0f + (wr_config_get_line_scale() / LINE_SCALE_FACTOR));
@@ -382,7 +383,7 @@ void WbElevationGrid::setResizeManipulatorDimensions() {
 bool WbElevationGrid::areSizeFieldsVisibleAndNotRegenerator() const {
   const WbField *const xSpacingField = findField("xSpacing", true);
   const WbField *const ySpacingField = findField("ySpacing", true);
-  return WbNodeUtilities::isVisible(xSpacingField) && WbNodeUtilities::isVisible(ySpacingField) &&
+  return WbVrmlNodeUtilities::isVisible(xSpacingField) && WbVrmlNodeUtilities::isVisible(ySpacingField) &&
          !WbNodeUtilities::isTemplateRegeneratorField(xSpacingField) &&
          !WbNodeUtilities::isTemplateRegeneratorField(ySpacingField);
 }

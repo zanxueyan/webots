@@ -1,4 +1,4 @@
-// Copyright 1996-2022 Cyberbotics Ltd.
+// Copyright 1996-2023 Cyberbotics Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -35,13 +35,13 @@
 const QString &WbStandardPaths::webotsHomePath() {
   static QString path;
 #ifdef __linux__
-  // on Linux,    the webots binary is located in $WEBOTS_HOME/bin/webots-bin
+  // on Linux, the webots binary is located in $WEBOTS_HOME/bin/webots-bin
   const int depth = 1;
 #elif defined(__APPLE__)
   // on macOS, the webots binary is located in $WEBOTS_HOME/Contents/MacOS/webots
   const int depth = 2;
 #else
-  // on Windows,  the webots binary is located in $WEBOTS_HOME/msys64/mingw64/bin/webots
+  // on Windows, the webots binary is located in $WEBOTS_HOME/msys64/mingw64/bin/webots
   const int depth = 3;
 #endif
   if (path.isEmpty()) {
@@ -189,14 +189,10 @@ const QString &WbStandardPaths::emptyProjectPath() {
     return resourcesProjectsPath();
 
   static QString path;
-  path = qgetenv("WEBOTS_EMPTY_PROJECT_PATH");
+  if (path.isEmpty())
+    path = QDir(qgetenv("WEBOTS_EMPTY_PROJECT_PATH")).absolutePath() + "/";
   return path;
 }
-
-const QString &WbStandardPaths::unnamedWorld() {
-  static QString fileName("unnamed.wbt");
-  return fileName;
-};
 
 const QString &WbStandardPaths::unnamedTextFile() {
   static QString fileName("unnamed.txt");
@@ -223,7 +219,13 @@ bool WbStandardPaths::webotsTmpPathCreate(const int id) {
   cWebotsTmpPath =
     QDir::fromNativeSeparators(WbSysInfo::environmentVariable("LOCALAPPDATA")) + QString("/Temp/webots-%1/").arg(id);
 #elif defined(__APPLE__)
-  cWebotsTmpPath = QString("/var/tmp/webots-%1/").arg(id);
+  const QString TMPDIR = WbSysInfo::environmentVariable("TMPDIR");
+  if (TMPDIR.isEmpty())
+    WbLog::error(QObject::tr("TMPDIR is not set: cannot run Webots."));
+  else if (!QDir(TMPDIR).exists())
+    WbLog::error(QObject::tr("TMPDIR '%1' doesn't exist: cannot run Webots.").arg(TMPDIR));
+  else
+    cWebotsTmpPath = QString("%1/webots-%2/").arg(TMPDIR).arg(id);
 #else  // __linux__
   const QString WEBOTS_TMPDIR = WbSysInfo::environmentVariable("WEBOTS_TMPDIR");
   if (!WEBOTS_TMPDIR.isEmpty() && QDir(WEBOTS_TMPDIR).exists())
@@ -270,4 +272,14 @@ int WbStandardPaths::webotsTmpPathId() {
 
 const QString &WbStandardPaths::webotsTmpPath() {
   return cWebotsTmpPath;
+}
+
+const QString &WbStandardPaths::cachedAssetsPath() {
+  static QString path(QStandardPaths::writableLocation(QStandardPaths::CacheLocation) + "/assets/");
+  return path;
+}
+
+const QString &WbStandardPaths::vehicleLibraryPath() {
+  static QString path(webotsHomePath() + cMacOsContents + "projects/default/libraries/vehicle/");
+  return path;
 }

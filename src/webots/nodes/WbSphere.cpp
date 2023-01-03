@@ -1,4 +1,4 @@
-// Copyright 1996-2022 Cyberbotics Ltd.
+// Copyright 1996-2023 Cyberbotics Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@
 #include "WbTokenizer.hpp"
 #include "WbTransform.hpp"
 #include "WbVersion.hpp"
+#include "WbVrmlNodeUtilities.hpp"
 #include "WbWrenRenderingContext.hpp"
 
 #include <wren/config.h>
@@ -51,13 +52,6 @@ WbSphere::WbSphere(WbTokenizer *tokenizer) : WbGeometry("Sphere", tokenizer) {
   init();
   if (tokenizer == NULL)
     mRadius->setValueNoSignal(0.1);
-  else if (tokenizer->fileType() == WbTokenizer::MODEL) {
-    // ensure compatibility with VRML specifications
-    mIco->setValueNoSignal(false);
-    mSubdivision->blockSignals(true);
-    mSubdivision->setValue(24);
-    mSubdivision->blockSignals(false);
-  }
 }
 
 WbSphere::WbSphere(const WbSphere &other) : WbGeometry(other) {
@@ -96,7 +90,7 @@ void WbSphere::setResizeManipulatorDimensions() {
   WbVector3 scale(radius(), radius(), radius());
   WbTransform *transform = upperTransform();
   if (transform)
-    scale *= transform->matrix().scale();
+    scale *= transform->absoluteScale();
 
   if (isAValidBoundingObject())
     scale *= 1.0f + (wr_config_get_line_scale() / LINE_SCALE_FACTOR);
@@ -112,7 +106,7 @@ void WbSphere::createResizeManipulator() {
 
 bool WbSphere::areSizeFieldsVisibleAndNotRegenerator() const {
   const WbField *const radiusField = findField("radius", true);
-  return WbNodeUtilities::isVisible(radiusField) && !WbNodeUtilities::isTemplateRegeneratorField(radiusField);
+  return WbVrmlNodeUtilities::isVisible(radiusField) && !WbNodeUtilities::isTemplateRegeneratorField(radiusField);
 }
 
 void WbSphere::exportNodeFields(WbWriter &writer) const {

@@ -1,4 +1,4 @@
-// Copyright 1996-2022 Cyberbotics Ltd.
+// Copyright 1996-2023 Cyberbotics Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@
 
 #include <ode/ode.h>
 
-QList<QPair<WbSolidDevice *, dGeomID>> WbSolidDevice::cDirtySensors;
+QList<std::pair<WbSolidDevice *, dGeomID>> WbSolidDevice::cDirtySensors;
 
 void WbSolidDevice::updateDirtySensors(const QList<dSpaceID> &spacesInCluster) {
   if (cDirtySensors.isEmpty())
@@ -49,7 +49,7 @@ WbSolidDevice::~WbSolidDevice() {
 }
 
 void WbSolidDevice::subscribeToRaysUpdate(dGeomID ray) {
-  cDirtySensors.append(QPair<WbSolidDevice *, dGeomID>(this, ray));
+  cDirtySensors.append(std::pair<WbSolidDevice *, dGeomID>(this, ray));
 }
 
 QString WbSolidDevice::computeShortUniqueName() const {

@@ -1,4 +1,4 @@
-// Copyright 1996-2022 Cyberbotics Ltd.
+// Copyright 1996-2023 Cyberbotics Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@
 #include "WbMFNode.hpp"
 #include "WbMFString.hpp"
 #include "WbMotor.hpp"
+#include "WbNetwork.hpp"
 #include "WbNodeOperations.hpp"
 #include "WbNodeReader.hpp"
 #include "WbNodeUtilities.hpp"
@@ -41,7 +42,7 @@
 #include "WbPreferences.hpp"
 #include "WbProject.hpp"
 #include "WbPropeller.hpp"
-#include "WbProtoList.hpp"
+#include "WbProtoManager.hpp"
 #include "WbProtoModel.hpp"
 #include "WbRenderingDevice.hpp"
 #include "WbRobot.hpp"
@@ -51,6 +52,7 @@
 #include "WbStandardPaths.hpp"
 #include "WbTemplateManager.hpp"
 #include "WbTokenizer.hpp"
+#include "WbUrl.hpp"
 #include "WbViewpoint.hpp"
 #include "WbWorldInfo.hpp"
 #include "WbWrenOpenGlContext.hpp"
@@ -78,7 +80,7 @@ WbWorld *WbWorld::instance() {
   return gInstance;
 }
 
-WbWorld::WbWorld(WbProtoList *protos, WbTokenizer *tokenizer) :
+WbWorld::WbWorld(WbTokenizer *tokenizer) :
   mWorldLoadingCanceled(false),
   mResetRequested(false),
   mRestartControllers(false),
@@ -87,7 +89,6 @@ WbWorld::WbWorld(WbProtoList *protos, WbTokenizer *tokenizer) :
   mWorldInfo(NULL),
   mViewpoint(NULL),
   mPerspective(NULL),
-  mProtos(protos ? protos : new WbProtoList()),
   mLastAwakeningTime(0.0),
   mIsLoading(true),
   mIsCleaning(false),
@@ -107,9 +108,6 @@ WbWorld::WbWorld(WbProtoList *protos, WbTokenizer *tokenizer) :
 
   if (tokenizer) {
     mFileName = tokenizer->fileName();
-    if (mFileName == (WbStandardPaths::emptyProjectPath() + "worlds/" + WbProject::newWorldFileName()))
-      mFileName = WbStandardPaths::unnamedWorld();
-
     mPerspective = new WbPerspective(mFileName);
     mPerspective->load();
 
@@ -150,8 +148,7 @@ WbWorld::WbWorld(WbProtoList *protos, WbTokenizer *tokenizer) :
     // ensure a minimal set of nodes for a functional world
     checkPresenceOfMandatoryNodes();
   } else {
-    mFileName = WbStandardPaths::unnamedWorld();
-
+    mFileName = WbProject::newWorldPath();
     mPerspective = new WbPerspective(mFileName);
     mPerspective->load();
 
@@ -162,18 +159,27 @@ WbWorld::WbWorld(WbProtoList *protos, WbTokenizer *tokenizer) :
     mRoot->addChild(mViewpoint);
   }
 
+  WbUrl::setWorldFileName(mFileName);
+
   WbNode::setGlobalParentNode(NULL);
   updateTopLevelLists();
 
   // world loading stuff
   connect(root(), &WbGroup::childFinalizationHasProgressed, WbApplication::instance(), &WbApplication::setWorldLoadingProgress);
+  connect(root(), &WbGroup::worldLoadingStatusHasChanged, WbApplication::instance(),
+          &WbApplication::worldLoadingStatusHasChanged);
   connect(this, &WbWorld::worldLoadingStatusHasChanged, WbApplication::instance(), &WbApplication::setWorldLoadingStatus);
   connect(this, &WbWorld::worldLoadingHasProgressed, WbApplication::instance(), &WbApplication::setWorldLoadingProgress);
   connect(WbApplication::instance(), &WbApplication::worldLoadingWasCanceled, root(), &WbGroup::cancelFinalization);
+
+  WbProtoManager::instance()->setNeedsRobotAncestorCallback(
+    [](const QString &nodeType) { return WbNodeUtilities::isDeviceTypeName(nodeType) && nodeType != "Connector"; });
 }
 
 void WbWorld::finalize() {
   disconnect(WbApplication::instance(), &WbApplication::worldLoadingWasCanceled, root(), &WbGroup::cancelFinalization);
+  disconnect(root(), &WbGroup::worldLoadingStatusHasChanged, WbApplication::instance(),
+             &WbApplication::worldLoadingStatusHasChanged);
   disconnect(this, &WbWorld::worldLoadingStatusHasChanged, WbApplication::instance(), &WbApplication::setWorldLoadingStatus);
   disconnect(this, &WbWorld::worldLoadingHasProgressed, WbApplication::instance(), &WbApplication::setWorldLoadingProgress);
   disconnect(root(), &WbGroup::childFinalizationHasProgressed, WbApplication::instance(),
@@ -196,7 +202,6 @@ void WbWorld::finalize() {
 
 WbWorld::~WbWorld() {
   delete mRoot;
-  delete mProtos;
   WbNode::cleanup();
   gInstance = NULL;
 
@@ -232,10 +237,6 @@ void WbWorld::setModified(bool isModified) {
   }
 }
 
-bool WbWorld::isUnnamed() const {
-  return mFileName == WbStandardPaths::unnamedWorld();
-}
-
 bool WbWorld::saveAs(const QString &fileName) {
   QFile file(fileName);
   if (!file.open(QIODevice::WriteOnly))
@@ -244,8 +245,19 @@ bool WbWorld::saveAs(const QString &fileName) {
   WbWriter writer(&file, fileName);
   writer.writeHeader(fileName);
 
-  const int count = mRoot->childCount();
-  for (int i = 0; i < count; ++i) {
+  writer << "\n";  // leave one space between header and body regardless of whether there are EXTERNPROTO or not
+
+  // prior to saving the EXTERNPROTO entries to file, purge the unused entries
+  WbNodeOperations::instance()->purgeUnusedExternProtoDeclarations();
+  const QVector<WbExternProto *> &externProto = WbProtoManager::instance()->externProto();
+  for (int i = 0; i < externProto.size(); ++i) {
+    const QString &url = WbProtoManager::instance()->formatExternProtoPath(externProto[i]->url());
+    writer << QString("%1EXTERNPROTO \"%2\"\n").arg(externProto[i]->isImportable() ? "IMPORTABLE " : "").arg(url);
+    if (i == externProto.size() - 1)
+      writer << "\n";  // add additional empty line after the last EXTERNPROTO entry
+  }
+
+  for (int i = 0; i < mRoot->childCount(); ++i) {
     mRoot->child(i)->write(writer);
     writer << "\n";
   }
@@ -253,14 +265,9 @@ bool WbWorld::saveAs(const QString &fileName) {
   writer.writeFooter();
 
   mFileName = fileName;
+  WbUrl::setWorldFileName(mFileName);
   bool isValidProject = true;
   const QString newProjectPath = WbProject::projectPathFromWorldFile(mFileName, isValidProject);
-  if (newProjectPath != WbProject::current()->path()) {
-    // reset list of loaded and available PROTO nodes
-    delete mProtos;
-    mProtos = new WbProtoList(isValidProject ? newProjectPath + "protos" : "");
-    WbProject::current()->setPath(newProjectPath);
-  }
 
   mIsModified = false;
   mIsModifiedFromSceneTree = false;
@@ -303,9 +310,9 @@ bool WbWorld::exportAsHtml(const QString &fileName, bool animation) const {
     QString titleString(WbWorld::instance()->worldInfo()->title());
     titleString = titleString.toHtmlEscaped();
 
-    QList<QPair<QString, QString>> cssTemplateValues;
-    cssTemplateValues << QPair<QString, QString>("%title%", titleString);
-    cssTemplateValues << QPair<QString, QString>("%type%", typeString);
+    QList<std::pair<QString, QString>> cssTemplateValues;
+    cssTemplateValues << std::pair<QString, QString>("%title%", titleString);
+    cssTemplateValues << std::pair<QString, QString>("%type%", typeString);
 
     if (!cX3DMetaFileExport) {  // when exporting the meta file (for web component), css is not needed
       success = WbFileUtil::copyAndReplaceString(WbStandardPaths::resourcesWebPath() + "templates/x3d_playback.css",
@@ -327,27 +334,27 @@ bool WbWorld::exportAsHtml(const QString &fileName, bool animation) const {
     infoString = infoString.toHtmlEscaped();
     infoString.replace("\n", "<br/>");
 
-    QList<QPair<QString, QString>> templateValues;
-    templateValues << QPair<QString, QString>("%x3dFilename%", QFileInfo(x3dFilename).fileName());
-    templateValues << QPair<QString, QString>("%type%", typeString);
-    templateValues << QPair<QString, QString>("%title%", titleString);
-    templateValues << QPair<QString, QString>("%description%", infoString);
-    templateValues << QPair<QString, QString>(
+    QList<std::pair<QString, QString>> templateValues;
+    templateValues << std::pair<QString, QString>("%x3dFilename%", QFileInfo(x3dFilename).fileName());
+    templateValues << std::pair<QString, QString>("%type%", typeString);
+    templateValues << std::pair<QString, QString>("%title%", titleString);
+    templateValues << std::pair<QString, QString>("%description%", infoString);
+    templateValues << std::pair<QString, QString>(
       "%x3dName%",
       fileName.split('/').last().replace(QRegularExpression(".html$", QRegularExpression::CaseInsensitiveOption), ".x3d"));
-    templateValues << QPair<QString, QString>(
+    templateValues << std::pair<QString, QString>(
       "%jpgName%",
       fileName.split('/').last().replace(QRegularExpression(".html$", QRegularExpression::CaseInsensitiveOption), ".jpg"));
     if (!cX3DMetaFileExport)
-      templateValues << QPair<QString, QString>(
+      templateValues << std::pair<QString, QString>(
         "%cssName%",
         fileName.split('/').last().replace(QRegularExpression(".html$", QRegularExpression::CaseInsensitiveOption), ".css"));
     if (animation)
-      templateValues << QPair<QString, QString>(
+      templateValues << std::pair<QString, QString>(
         "%jsonName%",
         fileName.split('/').last().replace(QRegularExpression(".html$", QRegularExpression::CaseInsensitiveOption), ".json"));
     else
-      templateValues << QPair<QString, QString>("%jsonName%", "");
+      templateValues << std::pair<QString, QString>("%jsonName%", "");
 
     if (cX3DMetaFileExport) {
       QString metaFilename = fileName;
@@ -571,9 +578,8 @@ QList<WbSolid *> WbWorld::findSolids(bool visibleNodes) const {
   return allSolids;
 }
 
-QStringList WbWorld::listTextureFiles() const {
-  QStringList list = mRoot->listTextureFiles();
-  list.removeDuplicates();
+QList<std::pair<QString, WbMFString *>> WbWorld::listTextureFiles() const {
+  QList<std::pair<QString, WbMFString *>> list = mRoot->listTextureFiles();
   return list;
 }
 
@@ -606,8 +612,10 @@ void WbWorld::updateProjectPath(const QString &oldPath, const QString &newPath) 
   const QFileInfo infoPath(mFileName);
   const QFileInfo infoNewPath(newPath);
   const QString newFilename = infoNewPath.absolutePath() + "/worlds/" + infoPath.fileName();
-  if (QFile::exists(newFilename))
+  if (QFile::exists(newFilename)) {
     mFileName = newFilename;
+    WbUrl::setWorldFileName(mFileName);
+  }
 }
 
 void WbWorld::setViewpoint(WbViewpoint *viewpoint) {

@@ -1,4 +1,4 @@
-// Copyright 1996-2022 Cyberbotics Ltd.
+// Copyright 1996-2023 Cyberbotics Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@
 #include "WbSimulationState.hpp"
 #include "WbTransform.hpp"
 #include "WbTranslateRotateManipulator.hpp"
+#include "WbVrmlNodeUtilities.hpp"
 
 #include <wren/transform.h>
 
@@ -142,15 +143,15 @@ bool WbAbstractTransform::checkScalingPhysicsConstraints(WbVector3 &correctedSca
   bool b = false;
   if (constraintType == WbWrenAbstractResizeManipulator::UNIFORM)
     b = checkScaleUniformity(correctedScale);
-  else if (constraintType == WbWrenAbstractResizeManipulator::X_EQUAL_Z && mScale->x() != mScale->z()) {
+  else if (constraintType == WbWrenAbstractResizeManipulator::X_EQUAL_Y && mScale->x() != mScale->y()) {
     if (mPreviousXscaleValue == mScale->x())
-      correctedScale.setX(mScale->z());
+      correctedScale.setX(mScale->y());
     else
-      correctedScale.setZ(mScale->x());
+      correctedScale.setY(mScale->x());
     b = true;
     if (warning)
       mBaseNode->parsingWarn(
-        QObject::tr("'scale' were changed so that x = z because of physics constraints inside a 'boundingObject'."));
+        QObject::tr("'scale' were changed so that x = y because of physics constraints inside a 'boundingObject'."));
   }
 
   return b;
@@ -244,7 +245,7 @@ void WbAbstractTransform::updateScale(bool warning) {
 void WbAbstractTransform::updateTranslationFieldVisibility() const {
   if (mIsTranslationFieldVisibleReady)
     return;
-  mIsTranslationFieldVisible = WbNodeUtilities::isVisible(mBaseNode->findField("translation", true));
+  mIsTranslationFieldVisible = WbVrmlNodeUtilities::isVisible(mBaseNode->findField("translation", true));
   mCanBeTranslated =
     !WbNodeUtilities::isTemplateRegeneratorField(mBaseNode->findField("translation", true)) && mIsTranslationFieldVisible;
   mIsTranslationFieldVisibleReady = true;
@@ -253,7 +254,7 @@ void WbAbstractTransform::updateTranslationFieldVisibility() const {
 void WbAbstractTransform::updateRotationFieldVisibility() const {
   if (mIsRotationFieldVisibleReady)
     return;
-  mIsRotationFieldVisible = WbNodeUtilities::isVisible(mBaseNode->findField("rotation", true));
+  mIsRotationFieldVisible = WbVrmlNodeUtilities::isVisible(mBaseNode->findField("rotation", true));
   mCanBeRotated =
     !WbNodeUtilities::isTemplateRegeneratorField(mBaseNode->findField("rotation", true)) && mIsRotationFieldVisible;
   mIsRotationFieldVisibleReady = true;
@@ -476,13 +477,17 @@ void WbAbstractTransform::showResizeManipulator(bool enabled) {
 
 void WbAbstractTransform::updateResizeHandlesSize() {
   if (mScaleManipulator) {
-    mScaleManipulator->updateHandleScale(matrix().scale().ptr());
+    mScaleManipulator->updateHandleScale(absoluteScale().ptr());
     mScaleManipulator->computeHandleScaleFromViewportSize();
   }
 }
 
 void WbAbstractTransform::setResizeManipulatorDimensions() {
   updateResizeHandlesSize();
+}
+
+bool WbAbstractTransform::isScaleManipulatorAttached() const {
+  return mScaleManipulator ? mScaleManipulator->isAttached() : false;
 }
 
 void WbAbstractTransform::attachResizeManipulator() {
@@ -501,7 +506,7 @@ void WbAbstractTransform::detachResizeManipulator() const {
 
 bool WbAbstractTransform::hasResizeManipulator() const {
   const WbField *const sf = mBaseNode->findField("scale", true);
-  return WbNodeUtilities::isVisible(sf) && !WbNodeUtilities::isTemplateRegeneratorField(sf);
+  return WbVrmlNodeUtilities::isVisible(sf) && !WbNodeUtilities::isTemplateRegeneratorField(sf);
 }
 
 void WbAbstractTransform::setUniformConstraintForResizeHandles(bool enabled) {

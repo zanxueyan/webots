@@ -273,7 +273,7 @@ Setup CI is done.
 ##### David Mansolino [Moderator] 02/14/2020 13:15:00
 Perfect !
 
-##### Axel M 02/21/2020 09:28:05
+##### Deleted User 02/21/2020 09:28:05
 Some issue I ran into when using urdf2webots:
 
 - The resulting model in webots is laying on its right side (-90 deg roll). This seems to be related to axes differences between ROS (Z upward) and webots (Y upward)
@@ -290,7 +290,7 @@ Regarding point 2 (large meshes), we are considering implementing support for me
 
 See [https://github.com/cyberbotics/webots/issues/1396](https://github.com/cyberbotics/webots/issues/1396)
 
-##### Axel M 02/21/2020 09:51:54
+##### Deleted User 02/21/2020 09:51:54
 Thats great, in the meantime I was considering modifying urdf2webots in order to generate PROTO files containing only the IndexedFaceSet of the parsed mesh (that's what i've done manually on my model). In the light of the above issue, does that seems still relevant to you ?
 
 ##### Olivier Michel [Cyberbotics] 02/21/2020 10:07:30
@@ -618,7 +618,7 @@ Hi `@Sanket Khadse`, the VRML import does indeed import only the visual meshes o
 
 Note also that a customizable door is already available in Webots: [https://cyberbotics.com/doc/guide/object-apartment-structure#door](https://cyberbotics.com/doc/guide/object-apartment-structure#door)
 
-##### 🌊 Ayato 🌊 04/14/2020 15:06:31
+##### Deleted User 04/14/2020 15:06:31
 hello! sorry for disturbing again. I don't know why but my simulation looks like lagging (I don't know if its correct word to explain but ) it's happens in some sample projects too I tried changing fps and time step but it didn't change too much thing in simulation.is there any other way to solve this ?
 
 ##### David Mansolino [Moderator] 04/14/2020 15:08:50
@@ -627,7 +627,7 @@ Hi, you may try reducing the OpenGl features to speed up the simulation speed: [
 
 You can also find some tips to speed up your simulation here: [https://cyberbotics.com/doc/guide/speed-performance](https://cyberbotics.com/doc/guide/speed-performance)
 
-##### 🌊 Ayato 🌊 04/14/2020 15:09:24
+##### Deleted User 04/14/2020 15:09:24
 okay thank you so much :)
 
 ##### David Mansolino [Moderator] 04/14/2020 15:13:36

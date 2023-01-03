@@ -765,3 +765,225 @@ The problem with the nightly is that, AFAIK, robot window is not retrocompatible
 ##### Olivier Michel [Cyberbotics] 05/19/2022 05:36:47
 There is nothing to change with your robot window. The only difference is that it will open in a web browser instead of inside Webots.
 
+## June
+
+##### kimmcg 06/16/2022 11:59:55
+Hi! Just a question related to the upcoming release. The 2022b is projected to come out soon right? In July?  I would like to add a new robot platform to it (the Crazyflie) so my question is: Would that still be possible to before the release and if so, what would be the deadline to not interfere with your testing too much?
+
+##### DDaniel [Cyberbotics] 06/16/2022 12:08:27
+Hi, that'd be great! The timing is a bit tight, but depending on how "ready" the robot is it might still be possible. I'd say if you can manage to have the PR ready for review by next Wednesday (and assuming it's complete with respect to what is mentioned here: [https://github.com/cyberbotics/webots/wiki/Adding-a-New-Robot](https://github.com/cyberbotics/webots/wiki/Adding-a-New-Robot)) we might still be able to include it
+
+##### kimmcg 06/16/2022 12:13:04
+Yeah I realize it is a bit tight.. was on a holiday before as well or else I would have done it sooner! There were also some issues with image textures with the nightly builds which prevented me to use the latest to try it out (I wanted to use the fixed collada import). Other than that, the robot itself is mostly done (albeit with a simple environment), so I think I will be able to make it!
+
+
+Thanks for letting me know the deadline and that it is still possible! It will be worth to get the Crazyflie in the next release 🙂 I'll give an headsup once the PR is ready
+
+
+For the new robot PR, there are no instructions of generating the icon [https://github.com/cyberbotics/webots/tree/master/scripts/icon\_studio](https://github.com/cyberbotics/webots/tree/master/scripts/icon_studio). I assume that I open the world, add the robot proto and run it?
+
+
+For the web component studio, I think I 'only' have to add the proto to the components.json.. but let me know if I'm mistaken
+
+##### Olivier Michel [Cyberbotics] 06/20/2022 10:25:26
+Yes, that seems correct. Let us know if you experience any difficulty while doing this.
+
+##### kimmcg 06/20/2022 10:52:15
+Great! yes I'll try it:)
+
+
+congrats on the construct award by the way!
+
+##### DDaniel [Cyberbotics] 06/20/2022 11:37:46
+normally I think you need add an entry to objects.json. However when you run the world, it will re-generate all icons which take a considerable amount of time. It might be better to empty the objects.json file leaving only yours first, and then run it
+
+##### kimmcg 06/20/2022 12:11:00
+ah yes thanks, I indeed came that far already.
+
+
+the issue now is that the 2022b nightly had errors with the icon creator. Either it's not able to upload the proto or issues with cropping the image.. problem is that I use CADshape for the robot so can't use 2022a stable
+
+
+I still have a non cadshape version of that, so perhaps I should use that. It looks completely identical anyway.
+
+##### Olivier Michel [Cyberbotics] 06/20/2022 12:22:00
+Yes, it is better to go for the cadshape version.
+
+##### kimmcg 06/20/2022 13:02:49
+Alright, with some detours I finally managed to get model pictures and icons. time for documentation 😁  Thanks for the help so far
+%figure
+![icon.png](https://cdn.discordapp.com/attachments/565155651395780609/988428712406032394/icon.png)
+%end
+
+##### DDaniel [Cyberbotics] 06/20/2022 13:21:50
+awesome, yes sorry about that, there have been some big changes recently and some of the tools in the periphery haven't been updated accordingly
+
+##### kimmcg 06/20/2022 13:23:13
+ah yeah I understand. Btw, I saw there that possibly 2022b nightly will be fixed tonight right, looking at the latest commit on master?
+
+##### DDaniel [Cyberbotics] 06/20/2022 13:23:57
+yes it should
+
+##### kimmcg 06/20/2022 13:24:43
+ah great! then hopefully I'll be able to test the final things on that tomorrow
+
+
+I started the PR for the Crazyflie on [https://github.com/cyberbotics/webots/pull/4703](https://github.com/cyberbotics/webots/pull/4703). I put it in draft for now as I still can see some CI failure (I couldn't build webots locally). but you can already take a look
+
+
+`@Olivier Michel` I see that you are currently reviewing it and pushing some changes. I think it only still fails on clang formatting and the licensing. Let me know once you are ready looking at it
+
+
+I had a question about the copyright notice in the string that the CI is checking though. Would it be possible to have a shared copyright here? How have you done it in the past?
+
+##### Olivier Michel [Cyberbotics] 06/21/2022 13:59:43
+Sure, this is possible. We should simply put your own copyright and disable the copyright test for your files.
+
+##### kimmcg 06/21/2022 14:02:12
+yes that sounds good, then I'll do that. Can I then do it like: 'Copyright 2022 Bitcraze AB' (since we added it this year)
+
+
+I'll wait until you finished your review
+
+##### Olivier Michel [Cyberbotics] 06/21/2022 14:03:18
+I will commit something to disable the license check for your files.
+
+
+But I'd appreciate if you can fix the clang-format error meanwhile.
+
+
+See [https://github.com/cyberbotics/webots/wiki/CPP-Coding-Style#cs300-cyberbotics-clang-format-style-compliance](https://github.com/cyberbotics/webots/wiki/CPP-Coding-Style#cs300-cyberbotics-clang-format-style-compliance)
+
+##### kimmcg 06/21/2022 14:06:12
+ah yes, I have formated them now already. I was just waiting a bit until everything was commited. At the moment that I wanted to push I got some divergences errors from github 😄  because I didn't noticed you merged the latest develop branch
+
+##### Olivier Michel [Cyberbotics] 06/21/2022 14:06:39
+Oops... Sorry for this.
+
+##### kimmcg 06/21/2022 14:07:46
+no worries! but I'll push the clang formatting now then with the updated licencing
+
+
+Seems like it is no longer failing on clang! but the licence test still fails.
+
+
+btw, the instructions of adding a robot also said I should add something to the changelog, but there is no file at $WEBOTS\_HOME/change\_logs/ChangeLog.html ([https://github.com/cyberbotics/webots/wiki/Adding-a-New-Robot](https://github.com/cyberbotics/webots/wiki/Adding-a-New-Robot)). does this mean that this is no longer necessary or do you have to add this to something else
+
+##### Olivier Michel [Cyberbotics] 06/21/2022 14:29:26
+The changelog actually moved...
+
+
+Let me fix the URL...
+
+##### kimmcg 06/21/2022 14:31:34
+ah it's probably changelog-r2022.md
+
+##### Olivier Michel [Cyberbotics] 06/21/2022 14:31:42
+That's it.
+
+
+Is is currently a mess regarding new robots... Let me clean this up...
+
+##### kimmcg 06/21/2022 14:35:15
+ah yea no worries. No hurry here. Let me know in the PR if you like to see any changes
+
+##### Olivier Michel [Cyberbotics] 06/21/2022 14:36:12
+The code looks pretty good. I only have a couple of minor change requests. I will test it now...
+
+##### kimmcg 06/21/2022 14:48:02
+thanks! I've tried to address all of them with the latest commits.
+
+
+all merged! Thanks again for your guidance 😄
+
+
+Must say that I'm quite impressed with the CI action going on! We can learn a thing or two at bitcraze
+
+## July
+
+##### starscream 07/15/2022 11:32:29
+Hope this finds you well. I am new to robotics and webots. If  someone would really direct me in the right direction it would be really helpful. I am trying to map a maze configuration file to a volumetric map like occupancy grid. Any one can recommend how to start approaching to this. TIA
+
+##### row 07/15/2022 14:19:33
+For the grid approach, I believe you need to discretize the workspace right? I think you can initialize a 2d array based on your workspace dimension and then ask the robot to travel along cells. You might need a controller that maps desired location to each wheel's velocity.
+
+
+Here is a tutorial: [https://towardsdatascience.com/occupancy-grid-mapping-with-webots-and-ros2-a6162a644fab](https://towardsdatascience.com/occupancy-grid-mapping-with-webots-and-ros2-a6162a644fab)
+
+##### DepressedCoder 07/19/2022 05:58:24
+A controller program written in python is not working in the latest nightly build of Webots 2022b. I am using a Macbook with Apple Silicon.
+%figure
+![Screenshot_2022-07-19_at_11.18.01_AM.png](https://cdn.discordapp.com/attachments/565155651395780609/998831153240887316/Screenshot_2022-07-19_at_11.18.01_AM.png)
+%end
+
+##### Benjamin Délèze [Cyberbotics] 07/19/2022 06:21:39
+I cannot reproduce this bug. Can you check that the python path that your are using in Webots (`/usr/local/bin/python3.7`) is correct?
+
+##### DepressedCoder 07/19/2022 06:22:23
+No I am using python which comes as a part of the conda environment. Default python is the one i installed through homebrew.
+
+
+When i deactivate the environment and type python it is not working. On typing python3 it works
+
+##### Benjamin Délèze [Cyberbotics] 07/19/2022 06:26:04
+Can you try to change the python command path in `Webots->preferences`to match an existing python install?
+
+##### DepressedCoder 07/19/2022 06:26:13
+let me try
+
+
+Error came.
+%figure
+![Screenshot_2022-07-19_at_11.57.28_AM.png](https://cdn.discordapp.com/attachments/565155651395780609/998838606657490975/Screenshot_2022-07-19_at_11.57.28_AM.png)
+%end
+%figure
+![Screenshot_2022-07-19_at_11.57.35_AM.png](https://cdn.discordapp.com/attachments/565155651395780609/998838607404073000/Screenshot_2022-07-19_at_11.57.35_AM.png)
+%end
+
+##### Benjamin Délèze [Cyberbotics] 07/19/2022 06:56:50
+Can you try with `/Library/Frameworks/Python.framework/Versions/3.9/bin/python3.9` instead?
+
+##### DepressedCoder 07/19/2022 07:29:18
+It is not working. The installation of python itself is not there. I used homebrew to install python when I bought the Macbook.
+
+
+`@Benjamin Délèze` Still same error with the latest nightly build. Could you have a possible answer on why the error is happening? I tried all solutions I could think of .
+
+##### Stefania Pedrazzi [Cyberbotics] 07/20/2022 06:06:38
+It seems to be expected that it doesn't work with the Anaconda Python.
+
+A workaround is to recompile the Webots controller library:
+
+[https://www.cyberbotics.com/doc/guide/using-python#use-an-alternative-python-version](https://www.cyberbotics.com/doc/guide/using-python#use-an-alternative-python-version)
+
+Regarding the issue with Python installed with homebrew this should be inspected but for the moment recompiling the Webots controller library should work in this case too.
+
+##### DepressedCoder 07/20/2022 06:20:07
+Let me try
+
+
+I installed python manually by downloading it from python.org. The controller worked finally. However, it would be good and helpful if the issue related to python installed through homebrew be looked upon. Thank you once again `@Stefania Pedrazzi` `@Benjamin Délèze`
+
+## August
+
+##### PabloDavidAR 08/01/2022 17:30:29
+Hey everyone, does anyone know if there is any plan to add some functionality between ROS and Webots to be able to spawn robots through a launch file of ROS2? I have been trying to make something like that, but I found nothing that could work within the webots\_ros2 package
+
+##### Olivier Michel [Cyberbotics] 08/03/2022 11:48:57
+This was implemented in [https://github.com/cyberbotics/webots\_ros2/pull/345](https://github.com/cyberbotics/webots_ros2/pull/345) and merged in the develop branch of `webots_ros2`.
+
+##### Din96\_Boy 08/17/2022 10:12:23
+[https://streamable.com/1c74of](https://streamable.com/1c74of) , Hello and good day everyone , I'm trying to achieve a rope like simulation in Webots. I have done some changes and I get some issues. In this video I have explained the issue that I'm having? , Does anyone know how can I resolve this one? Thank you
+
+##### Olivier Michel [Cyberbotics] 08/17/2022 10:20:37
+Does your pink cylinder have a Physics node?
+
+##### Din96\_Boy 08/17/2022 10:21:43
+no it only has bounding object
+
+##### Olivier Michel [Cyberbotics] 08/17/2022 10:22:23
+I believe adding a Physics node should resolve the problem.
+
+##### Din96\_Boy 08/17/2022 10:31:38
+Thank you for the quick reply on my question. I have tried it but it didn't made any changes?
+

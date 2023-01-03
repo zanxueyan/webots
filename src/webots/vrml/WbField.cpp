@@ -1,4 +1,4 @@
-// Copyright 1996-2022 Cyberbotics Ltd.
+// Copyright 1996-2023 Cyberbotics Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -62,7 +62,8 @@ WbField::WbField(const WbField &other, WbNode *parentNode) :
   mParameter(NULL),
   mAlias(other.mAlias),
   mIsTemplateRegenerator(other.mIsTemplateRegenerator),
-  mParentNode(parentNode) {
+  mParentNode(parentNode),
+  mScope(other.mScope) {
   mModel->ref();
   if (hasRestrictedValues())
     connect(mValue, &WbValue::changed, this, &WbField::checkValueIsAccepted, Qt::UniqueConnection);
@@ -79,6 +80,11 @@ WbField::~WbField() {
 }
 
 void WbField::listenToValueSizeChanges() const {
+  if (singleType() == WB_SF_NODE) {
+    WbSFNode *sfnode = static_cast<WbSFNode *>(mValue);
+    connect(sfnode, &WbSFNode::changed, this, &WbField::valueSizeChanged, Qt::UniqueConnection);
+    return;
+  }
   if (isSingle())
     return;
   const WbMultipleValue *mf = static_cast<WbMultipleValue *>(mValue);
@@ -100,7 +106,7 @@ bool WbField::isDeprecated() const {
 
 void WbField::readValue(WbTokenizer *tokenizer, const QString &worldPath) {
   if (mWasRead)
-    tokenizer->reportError(tr("Duplicate field value"));
+    tokenizer->reportError(tr("Duplicate field value: '%1'").arg(name()));
 
   mValue->read(tokenizer, worldPath);
   mWasRead = true;

@@ -1,4 +1,4 @@
-// Copyright 1996-2022 Cyberbotics Ltd.
+// Copyright 1996-2023 Cyberbotics Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -73,7 +73,7 @@ void WbNewControllerWizard::updateUI() {
 #ifdef _WIN32
   // update check box message
   if (mIdeButtonGroup->checkedId() == 1)  // Microsoft Visual Studio
-    mEditCheckBox->setText(tr("Open '%1.sln' in Microsoft Visual Studio (the controller need to be set to <<extern>> to be "
+    mEditCheckBox->setText(tr("Open '%1.sln' in Microsoft Visual Studio (the controller need to be set to <extern> to be "
                               "able to launch the controller from Microsoft Visual Studio.")
                              .arg(mNameEdit->text()));
   else
@@ -97,20 +97,15 @@ bool WbNewControllerWizard::validateCurrentPage() {
       mNameEdit->setText("MyController");
   }
   if (currentId() == NAME) {
-    QStringList existingControllers = QDir(WbProject::current()->controllersPath()).entryList();
-    foreach (const QString filename, existingControllers) {
-#ifdef _WIN32
-      if (filename.compare(mNameEdit->text(), Qt::CaseInsensitive) == 0) {
-#else
-      if (filename.compare(mNameEdit->text(), Qt::CaseSensitive) == 0) {
-#endif
-        WbMessageBox::warning("A controller by this name exists already. Try renaming your controller.", this,
-                              "Controller Already Exists");
-        return false;
-      }
+    if (mNameEdit->text().isEmpty()) {
+      WbMessageBox::warning(tr("Please specify a controller name."), this, tr("Invalid controller name"));
+      return false;
     }
-    // allow to continue only if controller name is not empty
-    return !mNameEdit->text().isEmpty();
+    if (QDir(WbProject::current()->controllersPath() + mNameEdit->text()).exists()) {
+      WbMessageBox::warning(tr("A controller with this name already exists, please choose a different name."), this,
+                            tr("Invalid controller name"));
+      return false;
+    }
   }
   return true;
 }

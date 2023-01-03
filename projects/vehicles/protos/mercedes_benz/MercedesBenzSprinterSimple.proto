@@ -1,21 +1,29 @@
-#VRML_SIM R2022b utf8
+#VRML_SIM R2023a utf8
 # license: Apache License 2.0
 # license url: http://www.apache.org/licenses/LICENSE-2.0
 # Simple kinematic model of the Mercedes-Benz Sprinter to be moved with a Supervisor.
 
+EXTERNPROTO "webots://projects/appearances/protos/GlossyPaint.proto"
+EXTERNPROTO "webots://projects/appearances/protos/RoughPolymer.proto"
+EXTERNPROTO "webots://projects/appearances/protos/PerforatedMetal.proto"
+EXTERNPROTO "webots://projects/vehicles/protos/abstract/VehicleWheel.proto"
+EXTERNPROTO "MercedesBenzSprinterLights.proto"
+EXTERNPROTO "MercedesBenzSprinterLogos.proto"
+
 PROTO MercedesBenzSprinterSimple [
-  field       SFVec3f    translation                    0 0 0.4
-  field       SFRotation rotation                       0 0 1 0
-  field       SFColor    color                          0.98 0 0.1
-  field       MFColor    recognitionColors              [ 0.98 0 0.1 ]
-  field       SFString   name                           "Mercedes-Benz Sprinter"
-  field       SFString   controller                     "<none>"
-  field       MFString   controllerArgs                 [ ]
-  field       MFNode     sensorsSlotFront               [ ]
-  field       MFNode     sensorsSlotRear                [ ]
-  field       MFNode     sensorsSlotTop                 [ ]
-  field       MFNode     sensorsSlotCenter              [ ]
-  field       SFBool     wheelBoundingObject            FALSE
+  field       SFVec3f    translation                    0 0 0.4                   # Is `Robot.translation`.
+  field       SFRotation rotation                       0 0 1 0                   # Is `Robot.rotation`.
+  field       SFColor    color                          0.98 0 0.1                # Defines the car body color.
+  field       MFColor    recognitionColors              [ 0.98 0 0.1 ]            # Is `Robot.recognitionColors`.
+  field       SFString   name                           "Mercedes-Benz Sprinter"  # Is `Robot.name`.
+  field       SFString   controller                     "<none>"                  # Is `Robot.controller`.
+  field       MFString   controllerArgs                 [ ]                       # Is `Robot.controllerArgs`.
+  field       SFString   window                         "<none>"                  # Is `Robot.window`.
+  field       MFNode     sensorsSlotFront               [ ]                       # Extends the robot with new nodes on the front of the car.
+  field       MFNode     sensorsSlotRear                [ ]                       # Extends the robot with new nodes on the back of the car.
+  field       MFNode     sensorsSlotTop                 [ ]                       # Extends the robot with new nodes on the roof of the car.
+  field       MFNode     sensorsSlotCenter              [ ]                       # Extends the robot with new nodes at the center of the car.
+  field       SFBool     wheelBoundingObject            FALSE                     # Defines whether the wheels should have a bounding object.
   hiddenField SFVec3f    frontRightWheelAngularVelocity 0 0 0
   hiddenField SFVec3f    frontLeftWheelAngularVelocity  0 0 0
   hiddenField SFVec3f    rearRightWheelAngularVelocity  0 0 0
@@ -103,11 +111,98 @@ PROTO MercedesBenzSprinterSimple [
         ]
         name "rear left wheel"
       }
-      Transform{
+      Transform {
         rotation 0.57735 0.57735 0.57735 2.094395
         children [
-          MercedesBenzSprinterMesh {
-            color IS color
+          DEF COACHWORK Shape {
+            appearance DEF BODYWORK_APPEARANCE GlossyPaint {
+              baseColor IS color
+            }
+            geometry Mesh {
+              url "meshes/coachwork.obj"
+            }
+          }
+          DEF COACHWORK_FRONT Shape {
+            appearance USE BODYWORK_APPEARANCE
+            geometry Mesh {
+              url "meshes/coachwork_front.obj"
+            }
+          }
+          DEF ROOF_AND_REAR Shape {
+            appearance USE BODYWORK_APPEARANCE
+            geometry Mesh {
+              url "meshes/roof_and_rear.obj"
+            }
+          }
+          DEF PLASTIC Shape {
+            appearance DEF PLASTIC_APPEARANCE RoughPolymer {
+              baseColor 0 0 0
+              textureTransform TextureTransform {
+                scale 3 3
+              }
+            }
+            geometry Mesh {
+              url "meshes/plastic.obj"
+            }
+          }
+          DEF WINDOWS Shape {
+            appearance PBRAppearance {
+              baseColor 0.343694 0.489372 0.612192
+              metalness 0
+            }
+            geometry Mesh {
+              url "meshes/windows.obj"
+            }
+          }
+          DEF MIRRORS Shape {
+            appearance PBRAppearance {
+              baseColor 0.4667 0.5333 0.5216
+              roughness 1
+              metalness 0
+            }
+            geometry Mesh {
+              url "meshes/mirrors.obj"
+            }
+          }
+          DEF REAR_DOOR_JOINTS Shape {
+            appearance PBRAppearance {
+            }
+            geometry Mesh {
+              url "meshes/rear_door_joints.obj"
+            }
+          }
+          DEF HANDLES Shape {
+            appearance PBRAppearance {
+              baseColor 0.0745 0.0745 0.0745
+              roughness 1
+              metalness 0
+            }
+            geometry Mesh {
+              url "meshes/handles.obj"
+            }
+          }
+          DEF BUMPER Shape {
+            appearance USE PLASTIC_APPEARANCE
+            geometry Mesh {
+              url "meshes/bumper.obj"
+            }
+          }
+          Transform {
+            translation 0 -0.136 0
+            scale 1 1.2 1
+            children [
+              DEF FRONT_RADIATOR Shape {
+                appearance PerforatedMetal {
+                  colorOverride 0.116793 0.118151 0.11812
+                  textureTransform TextureTransform {
+                    scale 1.4 2
+                  }
+                }
+                geometry Mesh {
+                  url "meshes/front_radiator.obj"
+                }
+              }
+            ]
           }
           MercedesBenzSprinterLights {
           }
@@ -153,5 +248,6 @@ PROTO MercedesBenzSprinterSimple [
     }
     radarCrossSection 150
     physics NULL
+    window IS window
   }
 }

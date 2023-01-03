@@ -1,4 +1,4 @@
-// Copyright 1996-2022 Cyberbotics Ltd.
+// Copyright 1996-2023 Cyberbotics Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@
 #include "WbPreferences.hpp"
 #include "WbProject.hpp"
 #include "WbPropeller.hpp"
-#include "WbProtoList.hpp"
+#include "WbProtoManager.hpp"
 #include "WbProtoModel.hpp"
 #include "WbRenderingDevice.hpp"
 #include "WbResizeManipulator.hpp"
@@ -244,6 +244,8 @@ void WbRobot::postFinalize() {
   connect(mSupervisor, &WbSFString::changed, this, &WbRobot::updateSupervisor);
   connect(this, &WbMatter::matterModelChanged, this, &WbRobot::updateModel);
   connect(WbSimulationState::instance(), &WbSimulationState::modeChanged, this, &WbRobot::updateSimulationMode);
+  connect(mBattery, &WbMFDouble::itemInserted, this, [this]() { this->updateBattery(true); });
+  connect(mBattery, &WbMFDouble::itemRemoved, this, [this]() { this->updateBattery(false); });
 
   if (absoluteScale() != WbVector3(1.0, 1.0, 1.0))
     parsingWarn(tr("This Robot node is scaled: this is discouraged as it could compromise the correct physical behavior."));
@@ -367,10 +369,6 @@ void WbRobot::addDevices(WbNode *node) {
 }
 
 void WbRobot::clearDevices() {
-  foreach (const WbDevice *device, mDevices)
-    disconnect(dynamic_cast<const WbBaseNode *>(device), &WbBaseNode::destroyed, this, &WbRobot::updateDevicesAfterDestruction);
-  foreach (const WbRenderingDevice *device, mRenderingDevices)
-    disconnect(device, &WbBaseNode::isBeingDestroyed, this, &WbRobot::removeRenderingDevice);
   mDevices.clear();
   mRenderingDevices.clear();
   mActiveCameras.clear();
@@ -404,6 +402,7 @@ void WbRobot::pinToStaticEnvironment(bool pin) {
 QString WbRobot::protoModelProjectPath() const {
   if (isProtoInstance())
     return proto()->projectPath();
+
   return QString();
 }
 
@@ -441,7 +440,7 @@ QString WbRobot::searchDynamicLibraryAbsolutePath(const QString &key, const QStr
               return protoDir.absolutePath() + "/" + libBasename;
           }
         }
-        protoModel = WbProtoList::current()->findModel(protoModel->ancestorProtoName(), "");
+        protoModel = WbProtoManager::instance()->findModel(protoModel->ancestorProtoName(), "", protoModel->diskPath());
       }
     }
 
@@ -603,6 +602,20 @@ void WbRobot::updateSupervisor() {
 
 void WbRobot::updateModel() {
   mModelNeedToWriteAnswer = true;
+}
+
+void WbRobot::updateBattery(bool itemInserted) {
+  if (mBattery->size() > (ENERGY_UPLOAD_SPEED + 1))
+    warn(tr("'battery' field can only contain three values. Remaining values are ignored."));
+  if (!itemInserted || mBattery->isEmpty())
+    return;
+
+  foreach (WbDevice *const device, mDevices) {
+    // setup motor joint feedback needed to compute energy consumption
+    WbMotor *motor = dynamic_cast<WbMotor *>(device);
+    if (motor)
+      motor->setupJointFeedback();
+  }
 }
 
 void WbRobot::removeRenderingDevice() {
@@ -1322,7 +1335,7 @@ void WbRobot::handleJoystickChange() {
   }
 }
 
-QString WbRobot::windowFile(const QString &extension) {
+QString WbRobot::windowFile(const QString &extension) const {
   if (window().isEmpty() || window() == "<generic>")
     return WbStandardPaths::resourcesRobotWindowsPluginsPath() + "generic/generic." + extension;
 
@@ -1346,7 +1359,7 @@ QString WbRobot::windowFile(const QString &extension) {
         if (file.exists() && file.isFile() && file.isReadable())
           return path;
       }
-      protoModel = WbProtoList::current()->findModel(protoModel->ancestorProtoName(), "");
+      protoModel = WbProtoManager::instance()->findModel(protoModel->ancestorProtoName(), "", protoModel->diskPath());
     }
   }
 
@@ -1483,11 +1496,22 @@ void WbRobot::exportNodeFields(WbWriter &writer) const {
       writer << " controller=";
       writer.writeLiteralString(controllerName());
     }
-    if (findField("window") && !window().isEmpty()) {
-      writer << " window=";
-      writer.writeLiteralString(window());
-    }
     writer << " type='robot'";
+  }
+}
+
+void WbRobot::fixMissingResources() const {
+  if (controllerName()[0] != '<' && mControllerDir != (WbProject::current()->controllersPath() + controllerName() + "/")) {
+    mController->setValue("<generic>");
+    WbLog::info(tr("The 'controller' field of the robot has been changed to \"<generic>\"."));
+  }
+
+  if (window()[0] != '<' &&
+      windowFile() != (WbProject::current()->robotWindowPluginsPath() + window() + "/" + window() + ".html")) {
+    mWindow->blockSignals(true);
+    mWindow->setValue("<generic>");
+    mWindow->blockSignals(false);
+    WbLog::info(tr("The 'window' field of the robot has been changed to \"<generic>\"."));
   }
 }
 
@@ -1507,12 +1531,16 @@ int WbRobot::computeSimulationMode() {
   }
 }
 
-void WbRobot::externControllerChanged() {
+void WbRobot::notifyExternControllerChanged() {
   foreach (WbRenderingDevice *device, mRenderingDevices) {
     WbAbstractCamera *ac = dynamic_cast<WbAbstractCamera *>(device);
     if (ac)
       ac->externControllerChanged();  // memory mapped file should be sent to new extern controller
   }
+
+  if (WbSimulationState::instance()->hasStarted())
+    // close old robot window if already configured
+    emit externControllerChanged();
 }
 
 void WbRobot::newRemoteExternController() {

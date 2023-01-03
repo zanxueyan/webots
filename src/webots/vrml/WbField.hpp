@@ -1,4 +1,4 @@
-// Copyright 1996-2022 Cyberbotics Ltd.
+// Copyright 1996-2023 Cyberbotics Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -112,6 +112,9 @@ public:
   // enable forwarding signals when the size of MF fields changes
   void listenToValueSizeChanges() const;
 
+  const QString &scope() const { return mScope; }
+  void setScope(const QString &value) { mScope = value; }
+
 signals:
   void valueChanged();
   void valueChangedByOde();
@@ -135,6 +138,8 @@ private:
 
   // for internal fields only
   WbNode *mParentNode;
+
+  QString mScope;
 
 private slots:
   void parameterChanged();

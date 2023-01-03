@@ -1,4 +1,4 @@
-// Copyright 1996-2022 Cyberbotics Ltd.
+// Copyright 1996-2023 Cyberbotics Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -278,7 +278,7 @@ void WbMultimediaStreamingServer::processTextMessage(QString message) {
         } else
           type = QEvent::MouseMove;
       }
-      QMouseEvent event(type, point, buttonPressed, buttonsPressed, keyboardModifiers);
+      QMouseEvent event(type, point, QCursor::pos(), buttonPressed, buttonsPressed, keyboardModifiers);
       if (gView3D) {
         const WbMatter *contextMenuNode = gView3D->remoteMouseEvent(&event);
         if (contextMenuNode)

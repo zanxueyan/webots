@@ -1,4 +1,4 @@
-// Copyright 1996-2022 Cyberbotics Ltd.
+// Copyright 1996-2023 Cyberbotics Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ public:
   void setRadius(float radius);
   void setQualityLevel(int qualityLevel);
   void setHalfResolution(bool halfResolution) { mHalfResolution = halfResolution; }
-  void setFlipNormalY(float flip);
+  void setFlipNormalY(bool flip);
   void copyNewInverseViewMatrix(const float *inverseViewMatrix);
   void applyOldInverseViewMatrixToWren();
 
@@ -48,7 +48,7 @@ private:
   float mOffsets[4];
   float mParams[4];
   bool mHalfResolution;
-  float mFlipNormalY;
+  bool mFlipNormalY;
   float mPreviousInverseViewMatrix[16];
   int mFrameCounter;
 };

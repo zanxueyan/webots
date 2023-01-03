@@ -1,4 +1,4 @@
-// Copyright 1996-2022 Cyberbotics Ltd.
+// Copyright 1996-2023 Cyberbotics Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ public:
   static WbControlledWorld *instance();
 
   // constructors and destructor
-  WbControlledWorld(WbProtoList *protos = NULL, WbTokenizer *tokenizer = NULL);
+  explicit WbControlledWorld(WbTokenizer *tokenizer = NULL);
   virtual ~WbControlledWorld();
 
   void startController(WbRobot *robot);
@@ -42,7 +42,7 @@ public:
   void step() override;
 
   QList<WbController *> controllers() const { return mControllers; }
-  QList<WbController *> externControllers() const { return mExternControllers; }
+  QList<WbController *> disconnectedExternControllers() const { return mDisconnectedExternControllers; }
 
 public slots:
   void deleteController(WbController *controller);
@@ -66,8 +66,8 @@ private:
   QList<WbController *> mControllers;         // currently running controllers (both intern and extern)
   QList<WbController *> mWaitingControllers;  // controllers inserted in previous step and waiting to be started in current step
   QList<WbController *> mNewControllers;      // controllers inserted in current step and waiting next step to start
-  QList<WbController *> mTerminatingControllers;  // controllers waiting to be deleted
-  QList<WbController *> mExternControllers;       // extern controllers not yet started
+  QList<WbController *> mTerminatingControllers;         // controllers waiting to be deleted
+  QList<WbController *> mDisconnectedExternControllers;  // extern controllers started but unconnected
   QList<double> mRequests;
   bool mNeedToYield;
   bool mFirstStep;

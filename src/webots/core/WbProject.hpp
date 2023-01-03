@@ -1,4 +1,4 @@
-// Copyright 1996-2022 Cyberbotics Ltd.
+// Copyright 1996-2023 Cyberbotics Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -70,9 +70,9 @@ public:
   QString robotWindowPluginsPath() const;
 
   // create files for new project
-  bool createNewProjectFiles(QString newWorldName = "");
+  bool createNewProjectFolders();
   QStringList newProjectFiles() const;
-  static QString newWorldFileName();
+  static QString newWorldPath();
 
   // e.g. "<absolute path to project>/controllers/four_wheel/"
   //       -> "<absolute path to project>/controllers/four_wheel/four_wheel.c"

@@ -1,4 +1,4 @@
-// Copyright 1996-2022 Cyberbotics Ltd.
+// Copyright 1996-2023 Cyberbotics Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -419,9 +419,9 @@ static const char *C_API_FUNCTIONS = "wb_accelerometer_enable "
                                      "wb_supervisor_node_add_force "
                                      "wb_supervisor_node_add_force_with_offset "
                                      "wb_supervisor_node_add_torque "
-                                     "wb_supervisor_node_disable_contact_point_tracking "
+                                     "wb_supervisor_node_disable_contact_points_tracking "
                                      "wb_supervisor_node_disable_pose_tracking "
-                                     "wb_supervisor_node_enable_contact_point_tracking "
+                                     "wb_supervisor_node_enable_contact_points_tracking "
                                      "wb_supervisor_node_enable_pose_tracking "
                                      "wb_supervisor_node_export_string "
                                      "wb_supervisor_node_get_base_type_name "
@@ -841,9 +841,9 @@ WbLanguage *WbLanguage::findByFileName(const QString &fileName) {
     suffixCode = CPP;
   else if (ext == "m")
     suffixCode = MATLAB;
-  else if (ext == "wbt" || ext == "wrl" || ext == "wbo")
+  else if (ext == "wbt")
     suffixCode = WBT;
-  else if (ext == "proto")
+  else if (ext == "proto" || ext == "generated_proto")
     suffixCode = PROTO;
   else if (ext == "lua")
     suffixCode = LUA;

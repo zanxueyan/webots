@@ -1,4 +1,4 @@
-// Copyright 1996-2022 Cyberbotics Ltd.
+// Copyright 1996-2023 Cyberbotics Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@
 #include "WbSFInt.hpp"
 #include "WbSimulationState.hpp"
 #include "WbTransform.hpp"
+#include "WbVrmlNodeUtilities.hpp"
 #include "WbWrenRenderingContext.hpp"
 
 #include <wren/config.h>
@@ -49,7 +50,7 @@ void WbCylinder::init() {
   mTop = findSFBool("top");
   mSubdivision = findSFInt("subdivision");
 
-  mResizeConstraint = WbWrenAbstractResizeManipulator::X_EQUAL_Z;
+  mResizeConstraint = WbWrenAbstractResizeManipulator::X_EQUAL_Y;
 }
 
 WbCylinder::WbCylinder(WbTokenizer *tokenizer) : WbGeometry("Cylinder", tokenizer) {
@@ -89,7 +90,7 @@ void WbCylinder::createWrenObjects() {
   if (isInBoundingObject()) {
     connect(WbWrenRenderingContext::instance(), &WbWrenRenderingContext::lineScaleChanged, this, &WbCylinder::updateLineScale);
 
-    if (mSubdivision->value() < MIN_BOUNDING_OBJECT_CIRCLE_SUBDIVISION && !WbNodeUtilities::hasAUseNodeAncestor(this))
+    if (mSubdivision->value() < MIN_BOUNDING_OBJECT_CIRCLE_SUBDIVISION && !WbVrmlNodeUtilities::hasAUseNodeAncestor(this))
       // silently reset the subdivision on node initialization
       mSubdivision->setValue(MIN_BOUNDING_OBJECT_CIRCLE_SUBDIVISION);
   }
@@ -100,11 +101,11 @@ void WbCylinder::createWrenObjects() {
 }
 
 void WbCylinder::setResizeManipulatorDimensions() {
-  WbVector3 scale(mRadius->value(), mHeight->value(), mRadius->value());
+  WbVector3 scale(mRadius->value(), mRadius->value(), mHeight->value());
 
   WbTransform *transform = upperTransform();
   if (transform)
-    scale *= transform->matrix().scale();
+    scale *= transform->absoluteScale();
 
   if (isAValidBoundingObject())
     scale *= 1.0f + (wr_config_get_line_scale() / LINE_SCALE_FACTOR);
@@ -121,7 +122,7 @@ void WbCylinder::createResizeManipulator() {
 bool WbCylinder::areSizeFieldsVisibleAndNotRegenerator() const {
   const WbField *const heightField = findField("height", true);
   const WbField *const radiusField = findField("radius", true);
-  return WbNodeUtilities::isVisible(heightField) && WbNodeUtilities::isVisible(radiusField) &&
+  return WbVrmlNodeUtilities::isVisible(heightField) && WbVrmlNodeUtilities::isVisible(radiusField) &&
          !WbNodeUtilities::isTemplateRegeneratorField(heightField) && !WbNodeUtilities::isTemplateRegeneratorField(radiusField);
 }
 
@@ -135,7 +136,7 @@ bool WbCylinder::sanitizeFields() {
   if (WbFieldChecker::resetIntIfNotInRangeWithIncludedBounds(this, mSubdivision, 3, 1000, 3))
     return false;
   if (mSubdivision->value() < MIN_BOUNDING_OBJECT_CIRCLE_SUBDIVISION && isInBoundingObject() &&
-      !WbNodeUtilities::hasAUseNodeAncestor(this)) {
+      !WbVrmlNodeUtilities::hasAUseNodeAncestor(this)) {
     parsingWarn(tr("'subdivision' value has no effect to physical 'boundingObject' geometry. "
                    "A minimum value of %2 is used for the representation.")
                   .arg(MIN_BOUNDING_OBJECT_CIRCLE_SUBDIVISION));

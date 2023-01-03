@@ -1,4 +1,4 @@
-// Copyright 1996-2022 Cyberbotics Ltd.
+// Copyright 1996-2023 Cyberbotics Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@
 #include <wren/texture.h>
 #include <wren/viewport.h>
 
-WbWrenMotionBlur::WbWrenMotionBlur() : WbWrenAbstractPostProcessingEffect(), mFirstRender(1.0f), mIntensity(0.0f) {
+WbWrenMotionBlur::WbWrenMotionBlur() : WbWrenAbstractPostProcessingEffect(), mFirstRender(true), mIntensity(0.0f) {
 }
 
 void WbWrenMotionBlur::setup(WrViewport *viewport) {
@@ -52,7 +52,7 @@ void WbWrenMotionBlur::setup(WrViewport *viewport) {
   mHasBeenSetup = true;
 }
 
-void WbWrenMotionBlur::setFirstRender(float firstRender) {
+void WbWrenMotionBlur::setFirstRender(bool firstRender) {
   mFirstRender = firstRender;
 
   applyParametersToWren();

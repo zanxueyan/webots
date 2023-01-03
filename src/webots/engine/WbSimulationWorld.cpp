@@ -1,4 +1,4 @@
-// Copyright 1996-2022 Cyberbotics Ltd.
+// Copyright 1996-2023 Cyberbotics Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
 #include "WbSimulationWorld.hpp"
 
 #include "WbBoundingSphere.hpp"
-#include "WbDownloader.hpp"
+#include "WbDownloadManager.hpp"
 #include "WbLog.hpp"
 #include "WbMassChecker.hpp"
 #include "WbNodeOperations.hpp"
@@ -49,8 +49,8 @@ WbSimulationWorld *WbSimulationWorld::instance() {
   return static_cast<WbSimulationWorld *>(WbWorld::instance());
 }
 
-WbSimulationWorld::WbSimulationWorld(WbProtoList *protos, WbTokenizer *tokenizer) :
-  WbWorld(protos, tokenizer),
+WbSimulationWorld::WbSimulationWorld(WbTokenizer *tokenizer) :
+  WbWorld(tokenizer),
   mCluster(NULL),
   mOdeContext(new WbOdeContext()),  // create ODE worlds and spaces
   mPhysicsPlugin(NULL),
@@ -61,12 +61,12 @@ WbSimulationWorld::WbSimulationWorld(WbProtoList *protos, WbTokenizer *tokenizer
 
   emit worldLoadingStatusHasChanged(tr("Downloading assets"));
   emit worldLoadingHasProgressed(0);
-  WbDownloader::reset();
+  WbDownloadManager::instance()->reset();
   root()->downloadAssets();
-  int progress = WbDownloader::progress();
+  int progress = WbDownloadManager::instance()->progress();
   while (progress < 100) {
     QCoreApplication::processEvents(QEventLoop::WaitForMoreEvents);
-    int newProgress = WbDownloader::progress();
+    int newProgress = WbDownloadManager::instance()->progress();
     if (newProgress != progress) {
       progress = newProgress;
       emit worldLoadingHasProgressed(progress);
@@ -100,8 +100,6 @@ WbSimulationWorld::WbSimulationWorld(WbProtoList *protos, WbTokenizer *tokenizer
       mPhysicsPlugin = NULL;
     }
   }
-
-  emit worldLoadingStatusHasChanged(tr("Finalizing nodes"));
 
   setIsLoading(true);
   root()->finalize();
@@ -408,7 +406,7 @@ void WbSimulationWorld::reset(bool restartControllers) {
     }
   }
   updateRandomSeed();
-  if (WbDownloader::progress() == 100)
+  if (WbDownloadManager::instance()->progress() == 100)
     WbSimulationState::instance()->resumeSimulation();
   if (mPhysicsPlugin)
     mPhysicsPlugin->init();

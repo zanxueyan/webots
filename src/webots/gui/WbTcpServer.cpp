@@ -1,4 +1,4 @@
-// Copyright 1996-2022 Cyberbotics Ltd.
+// Copyright 1996-2023 Cyberbotics Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -50,13 +50,16 @@ WbTcpServer::WbTcpServer(bool stream) :
   mPauseTimeout(-1),
   mWebSocketServer(NULL),
   mClientsReadyToReceiveMessages(false),
-  mStream(stream) {
+  mStream(stream),
+  mWorldReady(false) {
   connect(WbApplication::instance(), &WbApplication::postWorldLoaded, this, &WbTcpServer::newWorld);
   connect(WbApplication::instance(), &WbApplication::preWorldLoaded, this, &WbTcpServer::deleteWorld);
   connect(WbApplication::instance(), &WbApplication::worldLoadingHasProgressed, this, &WbTcpServer::setWorldLoadingProgress);
   connect(WbApplication::instance(), &WbApplication::worldLoadingStatusHasChanged, this, &WbTcpServer::setWorldLoadingStatus);
   connect(WbNodeOperations::instance(), &WbNodeOperations::nodeAdded, this, &WbTcpServer::propagateNodeAddition);
   connect(WbTemplateManager::instance(), &WbTemplateManager::postNodeRegeneration, this, &WbTcpServer::propagateNodeAddition);
+  connect(WbNodeOperations::instance(), &WbNodeOperations::nodeDeleted, this, &WbTcpServer::propagateNodeDeletion);
+  connect(WbTemplateManager::instance(), &WbTemplateManager::preNodeRegeneration, this, &WbTcpServer::propagateNodeDeletion);
 }
 
 WbTcpServer::~WbTcpServer() {
@@ -201,7 +204,7 @@ void WbTcpServer::onNewTcpData() {
     const QString etag = etagIndex ? tokens[etagIndex] : "";
     if (host.isEmpty())
       WbLog::warning(tr("No host specified in HTTP header."));
-    sendTcpRequestReply(tokens[1].sliced(1), etag, host, socket);
+    sendTcpRequestReply(tokens[1].startsWith("/") ? tokens[1].sliced(1) : tokens[1], etag, host, socket);
   }
 }
 
@@ -210,10 +213,14 @@ void WbTcpServer::addNewTcpController(QTcpSocket *socket) {
   const QStringList tokens = QString(line).split(QRegularExpression("\\s+"));
   const int robotNameIndex = tokens.indexOf("Robot-Name:") + 1;
   QByteArray reply;
+  if (!mWorldReady) {
+    reply.append("PROCESSING");
+    socket->write(reply);
+    return;
+  }
 
   const QList<WbRobot *> &robots = WbWorld::instance()->robots();
-  const QList<WbController *> &availableControllers =
-    WbControlledWorld::instance()->externControllers() + WbControlledWorld::instance()->controllers();
+  const QList<WbController *> &availableControllers = WbControlledWorld::instance()->disconnectedExternControllers();
   if (robotNameIndex) {  // robot name is given
     const QString robotName = tokens[robotNameIndex];
     foreach (WbRobot *const robot, robots) {
@@ -285,6 +292,8 @@ void WbTcpServer::sendTcpRequestReply(const QString &completeUrl, const QString 
     filePath = WbStandardPaths::resourcesProjectsPath() + "plugins/" + url;
   else if (url.startsWith("robot_windows/"))
     filePath = WbProject::current()->pluginsPath() + url;
+  else if (url.startsWith("~WEBOTS_HOME/"))
+    filePath = WbStandardPaths::webotsHomePath() + url.mid(13);
   else if (url.endsWith(".js") || url.endsWith(".css") || url.endsWith(".html"))
     filePath = WbStandardPaths::webotsHomePath() + url;
   socket->write(filePath.isEmpty() ? WbHttpReply::forge404Reply(url) : WbHttpReply::forgeFileReply(filePath, etag, host, url));
@@ -413,7 +422,7 @@ void WbTcpServer::processTextMessage(QString message) {
       WbApplication::instance()->worldReload();
     else if (message.startsWith("load:")) {
       const QString &worldsPath = WbProject::current()->worldsPath();
-      const QString &fullPath = worldsPath + '/' + message.mid(5);
+      const QString &fullPath = worldsPath + '/' + message.mid(5).split('/').takeLast();
       if (!QFile::exists(fullPath))
         WbLog::error(tr("Streaming server: world %1 doesn't exist.").arg(fullPath));
       else if (QDir(worldsPath) != QFileInfo(fullPath).absoluteDir())
@@ -528,9 +537,12 @@ void WbTcpServer::newWorld() {
   const QList<WbRobot *> &robots = WbWorld::instance()->robots();
   foreach (WbRobot *const robot, robots)
     connectNewRobot(robot);
+
+  mWorldReady = true;
 }
 
 void WbTcpServer::deleteWorld() {
+  mWorldReady = false;
   if (mWebSocketServer == NULL)
     return;
   foreach (QWebSocket *client, mWebSocketClients)
@@ -564,8 +576,13 @@ void WbTcpServer::propagateNodeAddition(WbNode *node) {
   }
 
   const WbRobot *robot = dynamic_cast<WbRobot *>(node);
-  if (robot)
+  if (robot) {
     connectNewRobot(robot);
+    if (mWebSocketClients.isEmpty())
+      return;
+    foreach (QWebSocket *client, mWebSocketClients)
+      sendRobotWindowInformation(client, robot);
+  }
 }
 
 QString WbTcpServer::simulationStateString(bool pauseTime) {
@@ -606,23 +623,42 @@ void WbTcpServer::pauseClientIfNeeded(QWebSocket *client) {
 }
 
 void WbTcpServer::sendWorldToClient(QWebSocket *client) {
-  const WbWorld *world = WbWorld::instance();
-  const QDir dir = QFileInfo(world->fileName()).dir();
-  const QStringList worldList = dir.entryList(QStringList() << "*.wbt", QDir::Files);
+  const QFileInfoList worldFiles =
+    QDir(WbProject::current()->worldsPath()).entryInfoList(QStringList() << "*.wbt", QDir::Files);
+
   QString worlds;
-  for (int i = 0; i < worldList.size(); ++i)
-    worlds += (i == 0 ? "" : ";") + QFileInfo(worldList.at(i)).fileName();
-  client->sendTextMessage("world:" + QFileInfo(world->fileName()).fileName() + ':' + worlds);
+  foreach (const QFileInfo item, worldFiles)
+    worlds += QDir(WbProject::current()->dir()).relativeFilePath(item.absoluteFilePath()) + ";";
+  worlds.chop(1);  // remove last separator
+
+  const QString &currentWorld = QDir(WbProject::current()->dir()).relativeFilePath(WbWorld::instance()->fileName());
+  client->sendTextMessage("world:" + currentWorld + ':' + worlds);
 
   const QList<WbRobot *> &robots = WbWorld::instance()->robots();
-  foreach (const WbRobot *robot, robots) {
-    if (!robot->window().isEmpty()) {
-      QJsonObject windowObject;
-      windowObject.insert("robot", robot->name());
-      windowObject.insert("window", robot->window());
-      const QJsonDocument windowDocument(windowObject);
-      client->sendTextMessage("robot window: " + windowDocument.toJson(QJsonDocument::Compact));
-    }
-  }
+  foreach (const WbRobot *robot, robots)
+    sendRobotWindowInformation(client, robot);
   client->sendTextMessage("scene load completed");
+}
+
+void WbTcpServer::sendRobotWindowInformation(QWebSocket *client, const WbRobot *robot, bool remove) {
+  if (!robot->window().isEmpty()) {
+    QJsonObject windowObject;
+    windowObject.insert("robot", robot->name());
+    windowObject.insert("window", robot->window());
+    if (remove)
+      windowObject.insert("remove", true);
+    if (WbWorld::instance()->worldInfo()->window() == robot->window())
+      windowObject.insert("main", true);
+    const QJsonDocument windowDocument(windowObject);
+    client->sendTextMessage("robot window: " + windowDocument.toJson(QJsonDocument::Compact));
+  }
+}
+
+void WbTcpServer::propagateNodeDeletion(WbNode *node) {
+  const WbNode *def = static_cast<const WbBaseNode *>(node)->getFirstFinalizedProtoInstance();
+  foreach (QWebSocket *client, mWebSocketClients) {
+    const WbRobot *robot = dynamic_cast<const WbRobot *>(def);
+    if (robot)
+      sendRobotWindowInformation(client, robot, true);
+  }
 }

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright 1996-2022 Cyberbotics Ltd.
+# Copyright 1996-2023 Cyberbotics Ltd.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import glob
 import os
 from convert_to_nue import convert_to_nue
 
-WEBOTS_HOME = os.environ['WEBOTS_HOME']
+WEBOTS_HOME = os.path.normpath(os.environ['WEBOTS_HOME'])
 nue_world_files = ['tests/api/worlds/*.wbt',
                    'tests/default/worlds/*.wbt',
                    'tests/manual_tests/worlds/*.wbt',
@@ -42,9 +42,9 @@ nue_world_files = ['tests/api/worlds/*.wbt',
 skip_world_files = []
 skipped_world_files = []
 for file in skip_world_files:
-    skipped_world_files.append(os.path.join(WEBOTS_HOME, file.replace('/', os.sep)))
+    skipped_world_files.append(os.path.join(WEBOTS_HOME, os.path.normpath(file)))
 for file in nue_world_files:
-    for f in glob.glob(os.path.join(WEBOTS_HOME, file.replace('/', os.sep))):
+    for f in glob.glob(os.path.join(WEBOTS_HOME, os.path.normpath(file))):
         if f in skipped_world_files:
             print('Skipping', f)
             continue

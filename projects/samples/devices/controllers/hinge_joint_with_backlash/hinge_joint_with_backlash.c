@@ -1,5 +1,5 @@
 /*
- * Copyright 1996-2022 Cyberbotics Ltd.
+ * Copyright 1996-2023 Cyberbotics Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,7 +40,7 @@ int main(int argc, char **argv) {
 
     if (position > 1.0471)
       wb_motor_set_velocity(rotor_motor, -SPEED);
-    if (position < -1.0471)
+    else if (position < -1.0471)
       wb_motor_set_velocity(rotor_motor, SPEED);
   }
 
